@@ -6,7 +6,7 @@ BUILD_DIR="build_publish"
 ZIP_FILE="${DIST_NAME}.zip"
 
 echo "==> Building release..."
-cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release > /dev/null
+cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF > /dev/null
 cmake --build "$BUILD_DIR" --target arena --parallel "$(nproc)" > /dev/null
 
 echo "==> Staging..."

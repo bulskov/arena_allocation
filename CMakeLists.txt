@@ -25,8 +25,17 @@ target_compile_options(arena PRIVATE
 )
 
 # ── Tests ────────────────────────────────────────────────────────────────────
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(CRITERION REQUIRED criterion)
-
-enable_testing()
-add_subdirectory(tests)
+option(BUILD_TESTING "Build test suite" ON)
+if(BUILD_TESTING)
+    find_package(PkgConfig)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(CRITERION criterion)
+    endif()
+    if(CRITERION_FOUND)
+        enable_testing()
+        add_subdirectory(tests)
+    else()
+        message(STATUS "Criterion not found — skipping tests "
+                       "(install libcriterion-dev or pass -DBUILD_TESTING=OFF)")
+    endif()
+endif()
