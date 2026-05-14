@@ -198,3 +198,37 @@ Test(virtual_arena, scratch_decommits_on_end)
 
     cr_assert_lt(arena.committed, committed_during);
 }
+
+/* ── NULL-ptr contract ──────────────────────────────────────────────────────
+ */
+
+Test(virtual_arena, realloc_null_ptr_acts_as_alloc)
+{
+    allocator_t a = virtual_arena_allocator(&arena);
+    void *p = mem_realloc(a, NULL, 0, 64, 1);
+    cr_assert_not_null(p);
+}
+
+Test(virtual_arena, free_null_is_noop)
+{
+    allocator_t a = virtual_arena_allocator(&arena);
+    mem_free(a, NULL, 0); /* must not crash */
+}
+
+/* ── stats ──────────────────────────────────────────────────────────────────
+ */
+
+Test(virtual_arena, stats_reports_reserved_and_used)
+{
+    allocator_t a = virtual_arena_allocator(&arena);
+    arena_stats_t s0 = virtual_arena_stats(&arena);
+    cr_assert_eq(s0.used, 0u);
+    cr_assert_eq(s0.committed, 0u); /* nothing committed yet */
+    cr_assert_eq(s0.reserved, (size_t)RESERVED);
+
+    mem_alloc(a, 64, 1);
+    arena_stats_t s1 = virtual_arena_stats(&arena);
+    cr_assert_geq(s1.used, 64u);
+    cr_assert_geq(s1.committed, (size_t)COMMIT_CHUNK);
+    cr_assert_eq(s1.reserved, (size_t)RESERVED);
+}

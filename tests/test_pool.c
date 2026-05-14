@@ -150,3 +150,38 @@ Test(pool, slots_are_pointer_aligned)
             i);
     }
 }
+
+/* ── NULL-ptr contract ──────────────────────────────────────────────────────
+ */
+
+Test(pool, realloc_null_ptr_acts_as_alloc)
+{
+    allocator_t a = pool_allocator(&pool);
+    void *p = mem_realloc(a, NULL, 0, OBJECT_SIZE, 1);
+    cr_assert_not_null(p);
+}
+
+Test(pool, free_null_is_noop)
+{
+    allocator_t a = pool_allocator(&pool);
+    mem_free(a, NULL, 0); /* pool_free dereferences ptr — guard is critical */
+}
+
+/* ── stats ──────────────────────────────────────────────────────────────────
+ */
+
+Test(pool, stats_tracks_live_objects)
+{
+    allocator_t a = pool_allocator(&pool);
+    arena_stats_t s0 = pool_stats(&pool);
+    cr_assert_eq(s0.used, 0u);
+    cr_assert_eq(s0.capacity, (size_t)(OBJECT_SIZE * CAPACITY));
+
+    mem_alloc(a, OBJECT_SIZE, 1);
+    arena_stats_t s1 = pool_stats(&pool);
+    cr_assert_eq(s1.used, (size_t)OBJECT_SIZE);
+
+    mem_alloc(a, OBJECT_SIZE, 1);
+    arena_stats_t s2 = pool_stats(&pool);
+    cr_assert_eq(s2.used, (size_t)(2 * OBJECT_SIZE));
+}

@@ -209,3 +209,59 @@ Test(growing_arena, scratch_frees_extra_blocks)
     /* Only the original NULL head (or the pre-scratch head) should remain. */
     cr_assert_null(arena.head); /* arena was empty before scratch */
 }
+
+/* ── NULL-ptr contract ──────────────────────────────────────────────────────
+ */
+
+Test(growing_arena, realloc_null_ptr_acts_as_alloc)
+{
+    allocator_t a = growing_arena_allocator(&arena);
+    void *p = mem_realloc(a, NULL, 0, 32, 1);
+    cr_assert_not_null(p);
+}
+
+Test(growing_arena, free_null_is_noop)
+{
+    allocator_t a = growing_arena_allocator(&arena);
+    mem_free(a, NULL, 0); /* must not crash */
+}
+
+/* ── reset_full ─────────────────────────────────────────────────────────────
+ */
+
+Test(growing_arena, reset_full_releases_all_blocks)
+{
+    allocator_t a = growing_arena_allocator(&arena);
+    for (int i = 0; i < 5; ++i)
+        mem_alloc(a, arena.block_size + 1, 1); /* one block per alloc */
+    cr_assert_not_null(arena.head);
+
+    growing_arena_reset_full(&arena);
+    cr_assert_null(arena.head);
+}
+
+Test(growing_arena, reset_full_arena_is_reusable)
+{
+    allocator_t a = growing_arena_allocator(&arena);
+    mem_alloc(a, BLOCK_SIZE * 4, 1);
+    growing_arena_reset_full(&arena);
+
+    void *p = mem_alloc(a, 64, 1);
+    cr_assert_not_null(p);
+}
+
+/* ── stats ──────────────────────────────────────────────────────────────────
+ */
+
+Test(growing_arena, stats_used_grows_with_allocations)
+{
+    allocator_t a = growing_arena_allocator(&arena);
+    arena_stats_t s0 = growing_arena_stats(&arena);
+    cr_assert_eq(s0.used, 0u);
+    cr_assert_eq(s0.capacity, 0u); /* no block yet */
+
+    mem_alloc(a, 64, 1);
+    arena_stats_t s1 = growing_arena_stats(&arena);
+    cr_assert_geq(s1.used, 64u);
+    cr_assert_geq(s1.capacity, (size_t)BLOCK_SIZE);
+}

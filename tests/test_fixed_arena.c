@@ -192,3 +192,69 @@ Test(fixed_arena, scratch_alloc_is_visible_before_end)
     cr_assert_eq(p[0], (uint8_t)0x55);
     scratch_end(&s);
 }
+
+/* ── NULL-ptr contract ──────────────────────────────────────────────────────
+ */
+
+Test(fixed_arena, realloc_null_ptr_acts_as_alloc)
+{
+    allocator_t a = fixed_arena_allocator(&arena);
+    void *p = mem_realloc(a, NULL, 0, 32, 1);
+    cr_assert_not_null(p);
+}
+
+Test(fixed_arena, free_null_is_noop)
+{
+    allocator_t a = fixed_arena_allocator(&arena);
+    mem_free(a, NULL, 0); /* must not crash */
+}
+
+/* ── stats ──────────────────────────────────────────────────────────────────
+ */
+
+Test(fixed_arena, stats_reports_used_and_capacity)
+{
+    allocator_t a = fixed_arena_allocator(&arena);
+    arena_stats_t s0 = fixed_arena_stats(&arena);
+    cr_assert_eq(s0.used, 0u);
+    cr_assert_eq(s0.capacity, (size_t)BUF_SIZE);
+
+    mem_alloc(a, 64, 1);
+    arena_stats_t s1 = fixed_arena_stats(&arena);
+    cr_assert_geq(s1.used, 64u);
+    cr_assert_leq(s1.used, (size_t)BUF_SIZE);
+    cr_assert_eq(s1.capacity, (size_t)BUF_SIZE);
+}
+
+/* ── mem_calloc ─────────────────────────────────────────────────────────────
+ */
+
+Test(fixed_arena, mem_calloc_returns_zeroed_memory)
+{
+    allocator_t a = fixed_arena_allocator(&arena);
+    uint8_t *p = mem_calloc(a, 64, 1);
+    cr_assert_not_null(p);
+    for (int i = 0; i < 64; ++i)
+        cr_assert_eq(p[i], (uint8_t)0);
+}
+
+/* ── ALLOCATOR_NULL ─────────────────────────────────────────────────────────
+ */
+
+Test(fixed_arena, allocator_null_alloc_returns_null)
+{
+    void *p = mem_alloc(ALLOCATOR_NULL, 32, 1);
+    cr_assert_null(p);
+}
+
+Test(fixed_arena, allocator_null_realloc_returns_null)
+{
+    void *p = mem_realloc(ALLOCATOR_NULL, NULL, 0, 32, 1);
+    cr_assert_null(p);
+}
+
+Test(fixed_arena, allocator_null_free_is_noop)
+{
+    uint8_t tmp[4];
+    mem_free(ALLOCATOR_NULL, tmp, 4); /* vt==NULL — must not crash */
+}

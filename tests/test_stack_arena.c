@@ -207,3 +207,39 @@ Test(stack_arena, fills_to_capacity)
     void *p = mem_alloc(a, 1, 1);
     cr_assert_null(p);
 }
+
+/* ── NULL-ptr contract ──────────────────────────────────────────────────────
+ */
+
+Test(stack_arena, realloc_null_ptr_acts_as_alloc)
+{
+    allocator_t a = stack_arena_allocator(&arena);
+    void *p = mem_realloc(a, NULL, 0, 16, 1);
+    cr_assert_not_null(p);
+}
+
+Test(stack_arena, free_null_is_noop)
+{
+    allocator_t a = stack_arena_allocator(&arena);
+    mem_free(a, NULL, 0); /* stack_free reads ptr+size — guard is critical */
+}
+
+/* ── stats ──────────────────────────────────────────────────────────────────
+ */
+
+Test(stack_arena, stats_reports_used_and_capacity)
+{
+    allocator_t a = stack_arena_allocator(&arena);
+    arena_stats_t s0 = stack_arena_stats(&arena);
+    cr_assert_eq(s0.used, 0u);
+    cr_assert_eq(s0.capacity, (size_t)CAPACITY);
+
+    mem_alloc(a, 16, 1);
+    arena_stats_t s1 = stack_arena_stats(&arena);
+    cr_assert_geq(s1.used, 16u);
+    cr_assert_eq(s1.capacity, (size_t)CAPACITY);
+
+    stack_arena_reset(&arena);
+    arena_stats_t s2 = stack_arena_stats(&arena);
+    cr_assert_eq(s2.used, 0u);
+}
