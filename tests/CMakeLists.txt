@@ -4,6 +4,7 @@ set(TEST_SUITES
     test_pool
     test_virtual_arena
     test_scratch
+    test_stack_arena
 )
 
 foreach(suite ${TEST_SUITES})

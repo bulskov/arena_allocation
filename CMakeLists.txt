@@ -12,6 +12,7 @@ add_library(arena STATIC
     src/pool.c
     src/virtual_arena.c
     src/scratch.c
+    src/stack_arena.c
 )
 
 target_include_directories(arena PUBLIC  include)
