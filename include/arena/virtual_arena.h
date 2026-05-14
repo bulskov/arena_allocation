@@ -26,12 +26,13 @@
  *   virtual_arena_scratch_begin — begin a temporary sub-scope
  */
 
-typedef struct {
-  uint8_t *base;
-  size_t reserved;     /* total VA bytes reserved                  */
-  size_t committed;    /* bytes currently backed by physical pages */
-  size_t offset;       /* bump pointer                             */
-  size_t commit_chunk; /* granularity for committing new pages     */
+typedef struct
+{
+    uint8_t *base;
+    size_t reserved;     /* total VA bytes reserved                  */
+    size_t committed;    /* bytes currently backed by physical pages */
+    size_t offset;       /* bump pointer                             */
+    size_t commit_chunk; /* granularity for committing new pages     */
 } virtual_arena_t;
 
 /*
@@ -39,8 +40,8 @@ typedef struct {
  * commit_chunk   — how many bytes to commit at a time (rounded to page size).
  * Returns 0 on success, -1 on failure.
  */
-int virtual_arena_init(virtual_arena_t *a, size_t reserved_size,
-                       size_t commit_chunk);
+int virtual_arena_init(
+    virtual_arena_t *a, size_t reserved_size, size_t commit_chunk);
 void virtual_arena_destroy(virtual_arena_t *a);
 void virtual_arena_reset(virtual_arena_t *a);
 allocator_t virtual_arena_allocator(virtual_arena_t *a);

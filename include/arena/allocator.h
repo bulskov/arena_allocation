@@ -34,16 +34,18 @@
  * alloc/realloc return NULL, free is a no-op.  Use ALLOCATOR_NULL.
  */
 
-typedef struct {
-  void *(*alloc)(void *ctx, size_t size, size_t align);
-  void *(*realloc)(void *ctx, void *ptr, size_t old_size, size_t new_size,
-                   size_t align);
-  void (*free)(void *ctx, void *ptr, size_t size);
+typedef struct
+{
+    void *(*alloc)(void *ctx, size_t size, size_t align);
+    void *(*realloc)(
+        void *ctx, void *ptr, size_t old_size, size_t new_size, size_t align);
+    void (*free)(void *ctx, void *ptr, size_t size);
 } allocator_vtable_t;
 
-typedef struct {
-  const allocator_vtable_t *vt;
-  void *ctx;
+typedef struct
+{
+    const allocator_vtable_t *vt;
+    void *ctx;
 } allocator_t;
 
 /*
@@ -56,11 +58,12 @@ typedef struct {
  *   reserved  — reserved virtual address range; equals capacity except for
  *               virtual_arena.
  */
-typedef struct {
-  size_t used;
-  size_t capacity;
-  size_t committed;
-  size_t reserved;
+typedef struct
+{
+    size_t used;
+    size_t capacity;
+    size_t committed;
+    size_t reserved;
 } arena_stats_t;
 
 /* Zero-initialised allocator: alloc/realloc return NULL, free is a no-op. */
@@ -68,30 +71,34 @@ typedef struct {
 
 /* ---------- inline wrappers ----------------------------------------------- */
 
-static inline void *mem_alloc(allocator_t a, size_t size, size_t align) {
-  if (!a.vt)
-    return NULL;
-  return a.vt->alloc(a.ctx, size, align);
+static inline void *mem_alloc(allocator_t a, size_t size, size_t align)
+{
+    if (!a.vt)
+        return NULL;
+    return a.vt->alloc(a.ctx, size, align);
 }
 
-static inline void *mem_realloc(allocator_t a, void *ptr, size_t old_size,
-                                size_t new_size, size_t align) {
-  if (!a.vt)
-    return NULL;
-  return a.vt->realloc(a.ctx, ptr, old_size, new_size, align);
+static inline void *mem_realloc(
+    allocator_t a, void *ptr, size_t old_size, size_t new_size, size_t align)
+{
+    if (!a.vt)
+        return NULL;
+    return a.vt->realloc(a.ctx, ptr, old_size, new_size, align);
 }
 
-static inline void mem_free(allocator_t a, void *ptr, size_t size) {
-  if (a.vt)
-    a.vt->free(a.ctx, ptr, size);
+static inline void mem_free(allocator_t a, void *ptr, size_t size)
+{
+    if (a.vt)
+        a.vt->free(a.ctx, ptr, size);
 }
 
 /* Allocate size bytes, zero-initialised. */
-static inline void *mem_calloc(allocator_t a, size_t size, size_t align) {
-  void *p = mem_alloc(a, size, align);
-  if (p)
-    memset(p, 0, size);
-  return p;
+static inline void *mem_calloc(allocator_t a, size_t size, size_t align)
+{
+    void *p = mem_alloc(a, size, align);
+    if (p)
+        memset(p, 0, size);
+    return p;
 }
 
 #endif /* ARENA_ALLOCATOR_H */

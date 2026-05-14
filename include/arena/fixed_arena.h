@@ -20,10 +20,11 @@
  *   fixed_arena_scratch_begin — begin a temporary sub-scope
  */
 
-typedef struct {
-  uint8_t *base;
-  size_t size;
-  size_t offset;
+typedef struct
+{
+    uint8_t *base;
+    size_t size;
+    size_t offset;
 } fixed_arena_t;
 
 void fixed_arena_init(fixed_arena_t *a, void *buf, size_t size);

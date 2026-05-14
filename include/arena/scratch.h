@@ -26,12 +26,13 @@
  *   scratch_allocator(scratch_t*) — get an allocator_t for user code
  */
 
-typedef struct {
-  allocator_t parent_alloc; /* forwarded to users unchanged              */
-  void *ctx;                /* same ctx as the parent arena              */
-  void *saved_block;        /* block ptr at mark time (growing arena)    */
-  size_t saved_offset;      /* offset at mark time                       */
-  void (*pop)(void *ctx, void *saved_block, size_t saved_offset);
+typedef struct
+{
+    allocator_t parent_alloc; /* forwarded to users unchanged              */
+    void *ctx;                /* same ctx as the parent arena              */
+    void *saved_block;        /* block ptr at mark time (growing arena)    */
+    size_t saved_offset;      /* offset at mark time                       */
+    void (*pop)(void *ctx, void *saved_block, size_t saved_offset);
 } scratch_t;
 
 /* Rewind the parent arena to the position saved at scratch_begin. */

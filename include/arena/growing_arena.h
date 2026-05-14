@@ -21,16 +21,18 @@
  *   growing_arena_scratch_begin — begin a temporary sub-scope
  */
 
-typedef struct growing_arena_block {
-  struct growing_arena_block *next;
-  size_t size;   /* usable bytes after the header */
-  size_t offset; /* bump pointer within usable bytes */
-                 /* uint8_t data[] follows in memory */
+typedef struct growing_arena_block
+{
+    struct growing_arena_block *next;
+    size_t size;   /* usable bytes after the header */
+    size_t offset; /* bump pointer within usable bytes */
+                   /* uint8_t data[] follows in memory */
 } growing_arena_block_t;
 
-typedef struct {
-  growing_arena_block_t *head; /* newest (current) block          */
-  size_t block_size;           /* minimum usable bytes per block   */
+typedef struct
+{
+    growing_arena_block_t *head; /* newest (current) block          */
+    size_t block_size;           /* minimum usable bytes per block   */
 } growing_arena_t;
 
 void growing_arena_init(growing_arena_t *a, size_t block_size);

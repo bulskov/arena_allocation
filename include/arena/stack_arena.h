@@ -33,11 +33,12 @@
  *   stack_arena_allocator — produce an allocator_t for user code
  */
 
-typedef struct {
-  uint8_t *base;
-  size_t capacity;
-  size_t offset;
-  size_t min_align;
+typedef struct
+{
+    uint8_t *base;
+    size_t capacity;
+    size_t offset;
+    size_t min_align;
 } stack_arena_t;
 
 int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align);

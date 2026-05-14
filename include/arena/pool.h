@@ -22,16 +22,18 @@
  *   pool_allocator — produce an allocator_t for user code
  */
 
-typedef struct pool_free_node {
-  struct pool_free_node *next;
+typedef struct pool_free_node
+{
+    struct pool_free_node *next;
 } pool_free_node_t;
 
-typedef struct {
-  uint8_t *base;
-  size_t slot_size; /* actual size of each slot (aligned)    */
-  size_t capacity;  /* maximum simultaneous live objects     */
-  size_t count;     /* currently allocated objects           */
-  pool_free_node_t *free_list;
+typedef struct
+{
+    uint8_t *base;
+    size_t slot_size; /* actual size of each slot (aligned)    */
+    size_t capacity;  /* maximum simultaneous live objects     */
+    size_t count;     /* currently allocated objects           */
+    pool_free_node_t *free_list;
 } pool_t;
 
 /*
