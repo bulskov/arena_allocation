@@ -64,11 +64,12 @@ static void *growing_alloc(void *ctx, size_t size, size_t align) {
 
   /* Try current block. */
   if (a->head) {
-    size_t aligned = align_up(a->head->offset, align);
-    if (aligned + size <= a->head->size) {
-      void *ptr = block_data(a->head) + aligned;
-      a->head->offset = aligned + size;
-      return ptr;
+    uintptr_t base = (uintptr_t)block_data(a->head);
+    uintptr_t adr  = align_up(base + a->head->offset, align);
+    size_t    off  = (size_t)(adr - base) + size;
+    if (off <= a->head->size) {
+      a->head->offset = off;
+      return (void *)adr;
     }
   }
 
@@ -81,9 +82,10 @@ static void *growing_alloc(void *ctx, size_t size, size_t align) {
   b->next = a->head;
   a->head = b;
 
-  size_t aligned = align_up(0, align);
-  b->offset = aligned + size;
-  return block_data(b) + aligned;
+  uintptr_t base = (uintptr_t)block_data(b);
+  uintptr_t adr  = align_up(base, align);
+  b->offset      = (size_t)(adr - base) + size;
+  return (void *)adr;
 }
 
 static void *growing_realloc(void *ctx, void *ptr, size_t old_size,

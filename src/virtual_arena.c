@@ -55,14 +55,14 @@ void virtual_arena_reset(virtual_arena_t *a) {
 /* ---------- vtable -------------------------------------------------------- */
 
 static void *virtual_alloc(void *ctx, size_t size, size_t align) {
-  virtual_arena_t *a = (virtual_arena_t *)ctx;
-  size_t aligned = align_up(a->offset, align);
-  size_t end = aligned + size;
+  virtual_arena_t *a    = (virtual_arena_t *)ctx;
+  uintptr_t        base = (uintptr_t)a->base;
+  uintptr_t        adr  = align_up(base + a->offset, align);
+  size_t           end  = (size_t)(adr - base) + size;
   if (ensure_committed(a, end) != 0)
     return NULL;
-  void *ptr = a->base + aligned;
   a->offset = end;
-  return ptr;
+  return (void *)adr;
 }
 
 static void *virtual_realloc(void *ctx, void *ptr, size_t old_size,
