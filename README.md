@@ -27,9 +27,15 @@ and controls the lifetime.
 | [`pool_t`](docs/pool.md)                   | single mmap block             | O(1) free-list | —       | many same-sized objects            |
 | [`virtual_arena_t`](docs/virtual_arena.md) | reserved VA, commit on demand | no-op          | ✓       | large / unpredictable working sets |
 | [`stack_arena_t`](docs/stack_arena.md)     | single mmap block             | O(1) LIFO      | —       | LIFO / scope-stack patterns        |
+| [`debug_allocator_t`](docs/debug_allocator.md) | wraps any `allocator_t`   | passthrough    | —       | testing, leak detection            |
 
 Scratch sub-scopes work across the bump allocators; see
 [`scratch_t`](docs/scratch.md).
+
+`debug_allocator_t` is a diagnostic wrapper — it fills memory with sentinel
+patterns (`0xCD` on alloc, `0xDD` on free) and tracks alloc counts and live
+bytes.  Wrap any arena with it during testing; a non-zero `bytes_live` after
+teardown indicates a leak.
 
 ## Quick start
 
