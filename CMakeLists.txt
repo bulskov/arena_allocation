@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.15)
+project(arena C)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+add_library(arena STATIC
+    src/platform.c
+    src/fixed_arena.c
+    src/growing_arena.c
+    src/pool.c
+    src/virtual_arena.c
+    src/scratch.c
+)
+
+target_include_directories(arena PUBLIC  include)
+target_include_directories(arena PRIVATE src)
+
+target_compile_options(arena PRIVATE
+    $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
+    $<$<C_COMPILER_ID:MSVC>:/W4>
+)
+
+# ── Tests ────────────────────────────────────────────────────────────────────
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CRITERION REQUIRED criterion)
+
+enable_testing()
+add_subdirectory(tests)
