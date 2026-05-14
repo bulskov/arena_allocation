@@ -52,6 +52,7 @@ static void *stack_alloc(void *ctx, size_t size, size_t align) {
 
 static void *stack_realloc(void *ctx, void *ptr, size_t old_size,
                            size_t new_size, size_t align) {
+  if (!ptr) return stack_alloc(ctx, new_size, align);
   stack_arena_t *a = (stack_arena_t *)ctx;
   (void)align;
   uintptr_t base = (uintptr_t)a->base;
@@ -78,6 +79,7 @@ static void *stack_realloc(void *ctx, void *ptr, size_t old_size,
 }
 
 static void stack_free(void *ctx, void *ptr, size_t size) {
+  if (!ptr) return;
   stack_arena_t *a = (stack_arena_t *)ctx;
   uintptr_t base = (uintptr_t)a->base;
   uintptr_t p = (uintptr_t)ptr;
@@ -96,4 +98,13 @@ static const allocator_vtable_t stack_arena_vtable = {
 
 allocator_t stack_arena_allocator(stack_arena_t *a) {
   return (allocator_t){.vt = &stack_arena_vtable, .ctx = a};
+}
+
+arena_stats_t stack_arena_stats(const stack_arena_t *a) {
+  return (arena_stats_t){
+      .used      = a->offset,
+      .capacity  = a->capacity,
+      .committed = a->capacity,
+      .reserved  = a->capacity,
+  };
 }

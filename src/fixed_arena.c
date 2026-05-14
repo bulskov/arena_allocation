@@ -30,6 +30,7 @@ static void *fixed_alloc(void *ctx, size_t size, size_t align) {
 
 static void *fixed_realloc(void *ctx, void *ptr, size_t old_size,
                            size_t new_size, size_t align) {
+  if (!ptr) return fixed_alloc(ctx, new_size, align);
   fixed_arena_t *a = (fixed_arena_t *)ctx;
   uint8_t *p = (uint8_t *)ptr;
 
@@ -65,6 +66,15 @@ static const allocator_vtable_t fixed_arena_vtable = {
 
 allocator_t fixed_arena_allocator(fixed_arena_t *a) {
   return (allocator_t){.vt = &fixed_arena_vtable, .ctx = a};
+}
+
+arena_stats_t fixed_arena_stats(const fixed_arena_t *a) {
+  return (arena_stats_t){
+      .used      = a->offset,
+      .capacity  = a->size,
+      .committed = a->size,
+      .reserved  = a->size,
+  };
 }
 
 /* ---------- scratch ------------------------------------------------------- */
