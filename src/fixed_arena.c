@@ -18,10 +18,10 @@ void fixed_arena_reset(fixed_arena_t *a) { a->offset = 0; }
 /* ---------- vtable -------------------------------------------------------- */
 
 static void *fixed_alloc(void *ctx, size_t size, size_t align) {
-  fixed_arena_t *a    = (fixed_arena_t *)ctx;
-  uintptr_t      base = (uintptr_t)a->base;
-  uintptr_t      adr  = align_up(base + a->offset, align);
-  size_t         off  = (size_t)(adr - base) + size;
+  fixed_arena_t *a = (fixed_arena_t *)ctx;
+  uintptr_t base = (uintptr_t)a->base;
+  uintptr_t adr = align_up(base + a->offset, align);
+  size_t off = (size_t)(adr - base) + size;
   if (off > a->size)
     return NULL;
   a->offset = off;
