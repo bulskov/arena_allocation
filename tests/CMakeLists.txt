@@ -5,6 +5,7 @@ set(TEST_SUITES
     test_virtual_arena
     test_scratch
     test_stack_arena
+    test_debug_allocator
 )
 
 foreach(suite ${TEST_SUITES})

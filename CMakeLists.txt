@@ -13,6 +13,7 @@ add_library(arena STATIC
     src/virtual_arena.c
     src/scratch.c
     src/stack_arena.c
+    src/debug_allocator.c
 )
 
 target_include_directories(arena PUBLIC  include)
