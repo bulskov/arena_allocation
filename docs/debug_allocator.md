@@ -6,10 +6,10 @@ and tracking five allocation counters.
 
 ## Sentinels
 
-| Pattern | Value | Meaning |
-|---|---|---|
-| Alloc sentinel | `0xCD` | Memory is freshly allocated but uninitialised |
-| Free sentinel | `0xDD` | Memory has been freed; reads through stale pointers are visible |
+| Pattern        | Value  | Meaning                                                         |
+| -------------- | ------ | --------------------------------------------------------------- |
+| Alloc sentinel | `0xCD` | Memory is freshly allocated but uninitialised                   |
+| Free sentinel  | `0xDD` | Memory has been freed; reads through stale pointers are visible |
 
 On every successful `alloc` or `realloc(NULL)` the returned region is filled
 with `0xCD`. On `free` the region is filled with `0xDD` before it is handed
@@ -30,12 +30,12 @@ immediately visible.
 #include "arena/debug_allocator.h"
 ```
 
-| Function | Description |
-|---|---|
+| Function                         | Description                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------- |
 | `debug_allocator_init(d, inner)` | Attach to `inner`; zero all counters. `inner` is not owned — it must outlive `d`. |
-| `debug_allocator_reset(d)` | Zero all counters. Does not affect the inner arena. |
-| `debug_allocator_allocator(d)` | Return an `allocator_t` for user code. |
-| `debug_allocator_stats(d)` | Return a `debug_allocator_stats_t` snapshot. |
+| `debug_allocator_reset(d)`       | Zero all counters. Does not affect the inner arena.                               |
+| `debug_allocator_allocator(d)`   | Return an `allocator_t` for user code.                                            |
+| `debug_allocator_stats(d)`       | Return a `debug_allocator_stats_t` snapshot.                                      |
 
 There is no `destroy` function — the wrapper owns nothing.
 

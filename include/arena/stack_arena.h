@@ -45,6 +45,7 @@ int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align);
 void stack_arena_destroy(stack_arena_t *a);
 void stack_arena_reset(stack_arena_t *a);
 allocator_t stack_arena_allocator(stack_arena_t *a);
+allocator_t stack_arena_allocator_new(stack_arena_t *a, size_t capacity, size_t min_align);
 arena_stats_t stack_arena_stats(const stack_arena_t *a);
 
 #endif /* ARENA_STACK_ARENA_H */

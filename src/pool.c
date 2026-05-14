@@ -116,3 +116,10 @@ arena_stats_t pool_stats(const pool_t *p)
         .reserved = p->capacity * p->slot_size,
     };
 }
+
+allocator_t pool_allocator_new(pool_t *p, size_t object_size, size_t capacity)
+{
+    if (pool_init(p, object_size, capacity) != 0)
+        return ALLOCATOR_NULL;
+    return pool_allocator(p);
+}

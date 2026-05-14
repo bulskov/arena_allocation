@@ -157,3 +157,11 @@ void virtual_arena_scratch_begin(scratch_t *s, virtual_arena_t *a)
     s->saved_offset = a->offset;
     s->pop = virtual_pop;
 }
+
+allocator_t virtual_arena_allocator_new(
+    virtual_arena_t *a, size_t reserved_size, size_t commit_chunk)
+{
+    if (virtual_arena_init(a, reserved_size, commit_chunk) != 0)
+        return ALLOCATOR_NULL;
+    return virtual_arena_allocator(a);
+}

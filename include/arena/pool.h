@@ -45,6 +45,7 @@ int pool_init(pool_t *p, size_t object_size, size_t capacity);
 void pool_destroy(pool_t *p);
 void pool_reset(pool_t *p);
 allocator_t pool_allocator(pool_t *p);
+allocator_t pool_allocator_new(pool_t *p, size_t object_size, size_t capacity);
 arena_stats_t pool_stats(const pool_t *p);
 
 #endif /* ARENA_POOL_H */

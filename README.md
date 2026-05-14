@@ -20,14 +20,14 @@ and controls the lifetime.
 
 ## Arena types
 
-| Type                                       | Backing                       | `free`         | Scratch | Typical use                        |
-| ------------------------------------------ | ----------------------------- | -------------- | ------- | ---------------------------------- |
-| [`fixed_arena_t`](docs/fixed_arena.md)     | external buffer               | no-op          | ✓       | stack buffer, embedded system      |
-| [`growing_arena_t`](docs/growing_arena.md) | chained mmap blocks           | no-op          | ✓       | general scoped allocation          |
-| [`pool_t`](docs/pool.md)                   | single mmap block             | O(1) free-list | —       | many same-sized objects            |
-| [`virtual_arena_t`](docs/virtual_arena.md) | reserved VA, commit on demand | no-op          | ✓       | large / unpredictable working sets |
-| [`stack_arena_t`](docs/stack_arena.md)     | single mmap block             | O(1) LIFO      | —       | LIFO / scope-stack patterns        |
-| [`debug_allocator_t`](docs/debug_allocator.md) | wraps any `allocator_t`   | passthrough    | —       | testing, leak detection            |
+| Type                                           | Backing                       | `free`         | Scratch | Typical use                        |
+| ---------------------------------------------- | ----------------------------- | -------------- | ------- | ---------------------------------- |
+| [`fixed_arena_t`](docs/fixed_arena.md)         | external buffer               | no-op          | ✓       | stack buffer, embedded system      |
+| [`growing_arena_t`](docs/growing_arena.md)     | chained mmap blocks           | no-op          | ✓       | general scoped allocation          |
+| [`pool_t`](docs/pool.md)                       | single mmap block             | O(1) free-list | —       | many same-sized objects            |
+| [`virtual_arena_t`](docs/virtual_arena.md)     | reserved VA, commit on demand | no-op          | ✓       | large / unpredictable working sets |
+| [`stack_arena_t`](docs/stack_arena.md)         | single mmap block             | O(1) LIFO      | —       | LIFO / scope-stack patterns        |
+| [`debug_allocator_t`](docs/debug_allocator.md) | wraps any `allocator_t`       | passthrough    | —       | testing, leak detection            |
 
 Scratch sub-scopes work across the bump allocators; see
 [`scratch_t`](docs/scratch.md).
@@ -43,9 +43,7 @@ teardown indicates a leak.
 #include "arena/growing_arena.h"
 
 growing_arena_t arena;
-growing_arena_init(&arena, 64 * 1024);
-
-allocator_t a = growing_arena_allocator(&arena);
+allocator_t a = growing_arena_allocator_new(&arena, 64 * 1024);
 
 int *buf = mem_alloc(a, 256 * sizeof(int), _Alignof(int));
 // ... use buf ...

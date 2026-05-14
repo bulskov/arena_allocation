@@ -122,3 +122,11 @@ arena_stats_t stack_arena_stats(const stack_arena_t *a)
         .reserved = a->capacity,
     };
 }
+
+allocator_t stack_arena_allocator_new(
+    stack_arena_t *a, size_t capacity, size_t min_align)
+{
+    if (stack_arena_init(a, capacity, min_align) != 0)
+        return ALLOCATOR_NULL;
+    return stack_arena_allocator(a);
+}

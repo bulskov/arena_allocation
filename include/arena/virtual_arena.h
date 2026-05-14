@@ -45,6 +45,7 @@ int virtual_arena_init(
 void virtual_arena_destroy(virtual_arena_t *a);
 void virtual_arena_reset(virtual_arena_t *a);
 allocator_t virtual_arena_allocator(virtual_arena_t *a);
+allocator_t virtual_arena_allocator_new(virtual_arena_t *a, size_t reserved_size, size_t commit_chunk);
 void virtual_arena_scratch_begin(scratch_t *s, virtual_arena_t *a);
 arena_stats_t virtual_arena_stats(const virtual_arena_t *a);
 

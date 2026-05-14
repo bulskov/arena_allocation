@@ -210,3 +210,9 @@ void growing_arena_scratch_begin(scratch_t *s, growing_arena_t *a)
     s->saved_offset = a->head ? a->head->offset : 0;
     s->pop = growing_pop;
 }
+
+allocator_t growing_arena_allocator_new(growing_arena_t *a, size_t block_size)
+{
+    growing_arena_init(a, block_size);
+    return growing_arena_allocator(a);
+}
