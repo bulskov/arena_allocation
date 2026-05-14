@@ -19,22 +19,22 @@ allocator_t   virtual_arena_allocator(virtual_arena_t *a);
 arena_stats_t virtual_arena_stats(const virtual_arena_t *a);
 ```
 
-| Function | Description |
-|---|---|
+| Function                | Description                                                                |
+| ----------------------- | -------------------------------------------------------------------------- |
 | `init(reserved, chunk)` | Reserve VA range (no physical pages). Returns 0 on success, -1 on failure. |
-| `destroy()` | Decommit + release the entire VA range. |
-| `reset()` | Decommit all physical pages; keep VA reservation. |
-| `scratch_begin(s)` | Save offset; `scratch_end` decommits pages beyond the mark. |
-| `allocator()` | Produce an `allocator_t` for user code. |
-| `stats()` | `used=offset`, `committed=committed_pages`, `reserved=full_VA`. |
+| `destroy()`             | Decommit + release the entire VA range.                                    |
+| `reset()`               | Decommit all physical pages; keep VA reservation.                          |
+| `scratch_begin(s)`      | Save offset; `scratch_end` decommits pages beyond the mark.                |
+| `allocator()`           | Produce an `allocator_t` for user code.                                    |
+| `stats()`               | `used=offset`, `committed=committed_pages`, `reserved=full_VA`.            |
 
 ## Allocator behaviour
 
-| Operation | Behaviour |
-|---|---|
-| `alloc(size, align)` | Bump pointer; commit more pages if needed; returns NULL on commit failure or VA exhaustion. |
-| `realloc(ptr, old, new, align)` | In-place if `ptr` is the last allocation; otherwise alloc+copy. `ptr==NULL` → alloc. |
-| `free(ptr, size)` | No-op. `ptr==NULL` is safe. |
+| Operation                       | Behaviour                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `alloc(size, align)`            | Bump pointer; commit more pages if needed; returns NULL on commit failure or VA exhaustion. |
+| `realloc(ptr, old, new, align)` | In-place if `ptr` is the last allocation; otherwise alloc+copy. `ptr==NULL` → alloc.        |
+| `free(ptr, size)`               | No-op. `ptr==NULL` is safe.                                                                 |
 
 After `reset()` and `scratch_end()`, newly committed pages are OS-zeroed
 (Linux/Windows both zero pages on commit). Existing in-use pages are not

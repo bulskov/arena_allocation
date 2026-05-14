@@ -15,21 +15,21 @@ allocator_t   pool_allocator(pool_t *p);
 arena_stats_t pool_stats(const pool_t *p);
 ```
 
-| Function | Description |
-|---|---|
+| Function                      | Description                                                                  |
+| ----------------------------- | ---------------------------------------------------------------------------- |
 | `init(object_size, capacity)` | `mmap` backing memory; build free-list. Returns 0 on success, -1 on failure. |
-| `destroy()` | `munmap` backing memory. |
-| `reset()` | Rebuild free-list; all live objects become invalid. |
-| `allocator()` | Produce an `allocator_t` for user code. |
-| `stats()` | Return usage snapshot (`used = count × slot_size`). |
+| `destroy()`                   | `munmap` backing memory.                                                     |
+| `reset()`                     | Rebuild free-list; all live objects become invalid.                          |
+| `allocator()`                 | Produce an `allocator_t` for user code.                                      |
+| `stats()`                     | Return usage snapshot (`used = count × slot_size`).                          |
 
 ## Allocator behaviour
 
-| Operation | Behaviour |
-|---|---|
-| `alloc(size, align)` | Pop from free-list; returns NULL if `size > slot_size` or pool is full. |
+| Operation                       | Behaviour                                                                                                                     |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `alloc(size, align)`            | Pop from free-list; returns NULL if `size > slot_size` or pool is full.                                                       |
 | `realloc(ptr, old, new, align)` | In-place (returns `ptr`) if `new_size ≤ slot_size`; otherwise NULL — pools do not cross size boundaries. `ptr==NULL` → alloc. |
-| `free(ptr, size)` | Push slot back onto free-list. `ptr==NULL` is a no-op. |
+| `free(ptr, size)`               | Push slot back onto free-list. `ptr==NULL` is a no-op.                                                                        |
 
 Memory is **not zeroed** on alloc or reset. Use `mem_calloc` for zero-init.
 

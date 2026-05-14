@@ -52,11 +52,11 @@ scratch_end(&s1);
 
 ## Per-arena behaviour on `scratch_end`
 
-| Arena | What `scratch_end` does |
-|---|---|
-| `fixed_arena_t` | Rewind bump offset to saved value. |
+| Arena             | What `scratch_end` does                                             |
+| ----------------- | ------------------------------------------------------------------- |
+| `fixed_arena_t`   | Rewind bump offset to saved value.                                  |
 | `growing_arena_t` | Free blocks prepended after the mark; restore saved block's offset. |
-| `virtual_arena_t` | Decommit pages beyond saved offset; return physical memory to OS. |
+| `virtual_arena_t` | Decommit pages beyond saved offset; return physical memory to OS.   |
 
 ## Limitations
 

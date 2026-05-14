@@ -26,10 +26,10 @@ typedef struct {
   size_t offset;
 } fixed_arena_t;
 
-void        fixed_arena_init(fixed_arena_t *a, void *buf, size_t size);
-void        fixed_arena_reset(fixed_arena_t *a);
+void fixed_arena_init(fixed_arena_t *a, void *buf, size_t size);
+void fixed_arena_reset(fixed_arena_t *a);
 allocator_t fixed_arena_allocator(fixed_arena_t *a);
-void        fixed_arena_scratch_begin(scratch_t *s, fixed_arena_t *a);
+void fixed_arena_scratch_begin(scratch_t *s, fixed_arena_t *a);
 arena_stats_t fixed_arena_stats(const fixed_arena_t *a);
 
 #endif /* ARENA_FIXED_ARENA_H */

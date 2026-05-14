@@ -17,21 +17,21 @@ allocator_t   fixed_arena_allocator(fixed_arena_t *a);
 arena_stats_t fixed_arena_stats(const fixed_arena_t *a);
 ```
 
-| Function | Description |
-|---|---|
-| `init(buf, size)` | Attach to an existing buffer. No allocation. |
-| `reset()` | Rewind bump pointer to zero. Buffer contents are untouched. |
-| `scratch_begin(s)` | Save current offset; see [scratch_t](scratch.md). |
-| `allocator()` | Produce an `allocator_t` for user code. |
-| `stats()` | Return current usage snapshot. |
+| Function           | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| `init(buf, size)`  | Attach to an existing buffer. No allocation.                |
+| `reset()`          | Rewind bump pointer to zero. Buffer contents are untouched. |
+| `scratch_begin(s)` | Save current offset; see [scratch_t](scratch.md).           |
+| `allocator()`      | Produce an `allocator_t` for user code.                     |
+| `stats()`          | Return current usage snapshot.                              |
 
 ## Allocator behaviour
 
-| Operation | Behaviour |
-|---|---|
-| `alloc(size, align)` | Bump pointer; returns NULL if capacity exceeded. |
+| Operation                       | Behaviour                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| `alloc(size, align)`            | Bump pointer; returns NULL if capacity exceeded.                                     |
 | `realloc(ptr, old, new, align)` | In-place if `ptr` is the last allocation; otherwise alloc+copy. `ptr==NULL` → alloc. |
-| `free(ptr, size)` | No-op. `ptr==NULL` is safe. |
+| `free(ptr, size)`               | No-op. `ptr==NULL` is safe.                                                          |
 
 Memory is **not zeroed** on alloc or reset. Use `mem_calloc` for zero-init.
 

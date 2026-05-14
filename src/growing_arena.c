@@ -100,7 +100,8 @@ static void *growing_alloc(void *ctx, size_t size, size_t align) {
 
 static void *growing_realloc(void *ctx, void *ptr, size_t old_size,
                              size_t new_size, size_t align) {
-  if (!ptr) return growing_alloc(ctx, new_size, align);
+  if (!ptr)
+    return growing_alloc(ctx, new_size, align);
   growing_arena_t *a = (growing_arena_t *)ctx;
 
   /* In-place: ptr is the last allocation in the current block. */
@@ -144,13 +145,13 @@ arena_stats_t growing_arena_stats(const growing_arena_t *a) {
   size_t used = 0, cap = 0;
   for (const growing_arena_block_t *b = a->head; b; b = b->next) {
     used += b->offset;
-    cap  += b->size;
+    cap += b->size;
   }
   return (arena_stats_t){
-      .used      = used,
-      .capacity  = cap,
+      .used = used,
+      .capacity = cap,
       .committed = cap,
-      .reserved  = cap,
+      .reserved = cap,
   };
 }
 

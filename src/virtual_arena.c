@@ -67,7 +67,8 @@ static void *virtual_alloc(void *ctx, size_t size, size_t align) {
 
 static void *virtual_realloc(void *ctx, void *ptr, size_t old_size,
                              size_t new_size, size_t align) {
-  if (!ptr) return virtual_alloc(ctx, new_size, align);
+  if (!ptr)
+    return virtual_alloc(ctx, new_size, align);
   virtual_arena_t *a = (virtual_arena_t *)ctx;
   uint8_t *p = (uint8_t *)ptr;
 
@@ -107,10 +108,10 @@ allocator_t virtual_arena_allocator(virtual_arena_t *a) {
 
 arena_stats_t virtual_arena_stats(const virtual_arena_t *a) {
   return (arena_stats_t){
-      .used      = a->offset,
-      .capacity  = a->reserved,
+      .used = a->offset,
+      .capacity = a->reserved,
       .committed = a->committed,
-      .reserved  = a->reserved,
+      .reserved = a->reserved,
   };
 }
 

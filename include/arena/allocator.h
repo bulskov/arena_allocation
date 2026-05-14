@@ -69,24 +69,28 @@ typedef struct {
 /* ---------- inline wrappers ----------------------------------------------- */
 
 static inline void *mem_alloc(allocator_t a, size_t size, size_t align) {
-  if (!a.vt) return NULL;
+  if (!a.vt)
+    return NULL;
   return a.vt->alloc(a.ctx, size, align);
 }
 
 static inline void *mem_realloc(allocator_t a, void *ptr, size_t old_size,
                                 size_t new_size, size_t align) {
-  if (!a.vt) return NULL;
+  if (!a.vt)
+    return NULL;
   return a.vt->realloc(a.ctx, ptr, old_size, new_size, align);
 }
 
 static inline void mem_free(allocator_t a, void *ptr, size_t size) {
-  if (a.vt) a.vt->free(a.ctx, ptr, size);
+  if (a.vt)
+    a.vt->free(a.ctx, ptr, size);
 }
 
 /* Allocate size bytes, zero-initialised. */
 static inline void *mem_calloc(allocator_t a, size_t size, size_t align) {
   void *p = mem_alloc(a, size, align);
-  if (p) memset(p, 0, size);
+  if (p)
+    memset(p, 0, size);
   return p;
 }
 

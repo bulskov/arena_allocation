@@ -63,7 +63,8 @@ static void *pool_alloc(void *ctx, size_t size, size_t align) {
 
 static void *pool_realloc(void *ctx, void *ptr, size_t old_size,
                           size_t new_size, size_t align) {
-  if (!ptr) return pool_alloc(ctx, new_size, align);
+  if (!ptr)
+    return pool_alloc(ctx, new_size, align);
   pool_t *p = (pool_t *)ctx;
   (void)old_size;
   (void)align;
@@ -74,7 +75,8 @@ static void *pool_realloc(void *ctx, void *ptr, size_t old_size,
 }
 
 static void pool_free(void *ctx, void *ptr, size_t size) {
-  if (!ptr) return;
+  if (!ptr)
+    return;
   pool_t *p = (pool_t *)ctx;
   (void)size;
   pool_free_node_t *node = (pool_free_node_t *)ptr;
@@ -95,9 +97,9 @@ allocator_t pool_allocator(pool_t *p) {
 
 arena_stats_t pool_stats(const pool_t *p) {
   return (arena_stats_t){
-      .used      = p->count * p->slot_size,
-      .capacity  = p->capacity * p->slot_size,
+      .used = p->count * p->slot_size,
+      .capacity = p->capacity * p->slot_size,
       .committed = p->capacity * p->slot_size,
-      .reserved  = p->capacity * p->slot_size,
+      .reserved = p->capacity * p->slot_size,
   };
 }

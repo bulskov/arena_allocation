@@ -6,7 +6,8 @@
 #include <stdint.h>
 
 /*
- * stack_arena_t — bump allocator with O(1) LIFO free, no per-allocation headers.
+ * stack_arena_t — bump allocator with O(1) LIFO free, no per-allocation
+ * headers.
  *
  * All allocations are aligned to min_align and their sizes are rounded up to
  * min_align.  This eliminates padding gaps between consecutive allocations,
@@ -33,16 +34,16 @@
  */
 
 typedef struct {
-    uint8_t* base;
-    size_t   capacity;
-    size_t   offset;
-    size_t   min_align;
+  uint8_t *base;
+  size_t capacity;
+  size_t offset;
+  size_t min_align;
 } stack_arena_t;
 
-int         stack_arena_init(stack_arena_t* a, size_t capacity, size_t min_align);
-void        stack_arena_destroy(stack_arena_t* a);
-void        stack_arena_reset(stack_arena_t* a);
-allocator_t stack_arena_allocator(stack_arena_t* a);
-arena_stats_t stack_arena_stats(const stack_arena_t* a);
+int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align);
+void stack_arena_destroy(stack_arena_t *a);
+void stack_arena_reset(stack_arena_t *a);
+allocator_t stack_arena_allocator(stack_arena_t *a);
+arena_stats_t stack_arena_stats(const stack_arena_t *a);
 
 #endif /* ARENA_STACK_ARENA_H */

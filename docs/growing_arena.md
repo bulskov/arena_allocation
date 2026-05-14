@@ -17,15 +17,15 @@ allocator_t   growing_arena_allocator(growing_arena_t *a);
 arena_stats_t growing_arena_stats(const growing_arena_t *a);
 ```
 
-| Function | Description |
-|---|---|
-| `init(block_size)` | Set minimum bytes per block. No mmap yet. |
-| `destroy()` | `munmap` all blocks. |
-| `reset()` | Free all blocks except the head; rewind head's offset. |
-| `reset_full()` | Free **all** blocks including the head; arena is as if freshly initialised. Use when the head block may be oversized from a past large allocation. |
-| `scratch_begin(s)` | Save block chain + offset; see [scratch_t](scratch.md). |
-| `allocator()` | Produce an `allocator_t` for user code. |
-| `stats()` | Return current usage snapshot (sums across all blocks). |
+| Function           | Description                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init(block_size)` | Set minimum bytes per block. No mmap yet.                                                                                                          |
+| `destroy()`        | `munmap` all blocks.                                                                                                                               |
+| `reset()`          | Free all blocks except the head; rewind head's offset.                                                                                             |
+| `reset_full()`     | Free **all** blocks including the head; arena is as if freshly initialised. Use when the head block may be oversized from a past large allocation. |
+| `scratch_begin(s)` | Save block chain + offset; see [scratch_t](scratch.md).                                                                                            |
+| `allocator()`      | Produce an `allocator_t` for user code.                                                                                                            |
+| `stats()`          | Return current usage snapshot (sums across all blocks).                                                                                            |
 
 ### `reset()` vs `reset_full()`
 
@@ -35,11 +35,11 @@ retained. Use `reset_full()` to release all memory when this is a concern.
 
 ## Allocator behaviour
 
-| Operation | Behaviour |
-|---|---|
-| `alloc(size, align)` | Bump pointer in current block; `mmap` a new block if needed. |
+| Operation                       | Behaviour                                                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `alloc(size, align)`            | Bump pointer in current block; `mmap` a new block if needed.                                              |
 | `realloc(ptr, old, new, align)` | In-place if `ptr` is the last allocation in the current block; otherwise alloc+copy. `ptr==NULL` → alloc. |
-| `free(ptr, size)` | No-op. `ptr==NULL` is safe. |
+| `free(ptr, size)`               | No-op. `ptr==NULL` is safe.                                                                               |
 
 Memory is **not zeroed** on alloc or reset. Use `mem_calloc` for zero-init.
 

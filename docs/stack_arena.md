@@ -24,21 +24,21 @@ allocator_t   stack_arena_allocator(stack_arena_t *a);
 arena_stats_t stack_arena_stats(const stack_arena_t *a);
 ```
 
-| Function | Description |
-|---|---|
+| Function                    | Description                                                                                         |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
 | `init(capacity, min_align)` | `mmap` backing buffer. `min_align` must be a power of two ≥ 1. Returns 0 on success, -1 on failure. |
-| `destroy()` | `munmap` backing buffer. |
-| `reset()` | Rewind offset to zero. |
-| `allocator()` | Produce an `allocator_t` for user code. |
-| `stats()` | Return usage snapshot. |
+| `destroy()`                 | `munmap` backing buffer.                                                                            |
+| `reset()`                   | Rewind offset to zero.                                                                              |
+| `allocator()`               | Produce an `allocator_t` for user code.                                                             |
+| `stats()`                   | Return usage snapshot.                                                                              |
 
 ## Allocator behaviour
 
-| Operation | Behaviour |
-|---|---|
-| `alloc(size, align)` | Start = `align_up(offset, min_align)`; slot = `align_up(size, min_align)`. Returns NULL if capacity exceeded. The `align` parameter is accepted but clamped to `min_align`. |
-| `realloc(ptr, old, new, align)` | In-place if `ptr` is the current top; otherwise alloc+copy (old slot is not freed). `ptr==NULL` → alloc. |
-| `free(ptr, size)` | Rewinds offset if `ptr` is the current top; otherwise silent no-op. `ptr==NULL` is a no-op. |
+| Operation                       | Behaviour                                                                                                                                                                   |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alloc(size, align)`            | Start = `align_up(offset, min_align)`; slot = `align_up(size, min_align)`. Returns NULL if capacity exceeded. The `align` parameter is accepted but clamped to `min_align`. |
+| `realloc(ptr, old, new, align)` | In-place if `ptr` is the current top; otherwise alloc+copy (old slot is not freed). `ptr==NULL` → alloc.                                                                    |
+| `free(ptr, size)`               | Rewinds offset if `ptr` is the current top; otherwise silent no-op. `ptr==NULL` is a no-op.                                                                                 |
 
 Memory is **not zeroed** on alloc or reset. Use `mem_calloc` for zero-init.
 

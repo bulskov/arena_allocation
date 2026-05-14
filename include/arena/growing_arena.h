@@ -33,12 +33,12 @@ typedef struct {
   size_t block_size;           /* minimum usable bytes per block   */
 } growing_arena_t;
 
-void        growing_arena_init(growing_arena_t *a, size_t block_size);
-void        growing_arena_destroy(growing_arena_t *a);
-void        growing_arena_reset(growing_arena_t *a);
-void        growing_arena_reset_full(growing_arena_t *a);
+void growing_arena_init(growing_arena_t *a, size_t block_size);
+void growing_arena_destroy(growing_arena_t *a);
+void growing_arena_reset(growing_arena_t *a);
+void growing_arena_reset_full(growing_arena_t *a);
 allocator_t growing_arena_allocator(growing_arena_t *a);
-void        growing_arena_scratch_begin(scratch_t *s, growing_arena_t *a);
+void growing_arena_scratch_begin(scratch_t *s, growing_arena_t *a);
 arena_stats_t growing_arena_stats(const growing_arena_t *a);
 
 #endif /* ARENA_GROWING_ARENA_H */
