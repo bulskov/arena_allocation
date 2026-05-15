@@ -1,187 +1,183 @@
-#include <criterion/criterion.h>
+#include <gtest/gtest.h>
 #include <stdint.h>
 #include <string.h>
 
+extern "C" {
 #include "arena/pool.h"
+}
 
 #define OBJECT_SIZE 32
 #define CAPACITY 16
 
 static pool_t pool;
 
-static void setup(void)
-{
-    cr_assert_eq(pool_init(&pool, OBJECT_SIZE, CAPACITY), 0);
-}
-static void teardown(void)
-{
-    pool_destroy(&pool);
-}
-
-TestSuite(pool, .init = setup, .fini = teardown);
+class PoolTest : public ::testing::Test {
+protected:
+    void SetUp() override
+    {
+        ASSERT_EQ(pool_init(&pool, OBJECT_SIZE, CAPACITY), 0);
+    }
+    void TearDown() override { pool_destroy(&pool); }
+};
 
 /* ── basic alloc / free ─────────────────────────────────────────────────────
  */
 
-Test(pool, alloc_returns_nonnull)
+TEST_F(PoolTest, alloc_returns_nonnull)
 {
     void *p = mem_alloc(pool_allocator(&pool), OBJECT_SIZE, 1);
-    cr_assert_not_null(p);
+    ASSERT_NE(p, nullptr);
 }
 
-Test(pool, alloc_writes_are_readable)
+TEST_F(PoolTest, alloc_writes_are_readable)
 {
     allocator_t a = pool_allocator(&pool);
-    uint8_t *p = mem_alloc(a, OBJECT_SIZE, 1);
-    cr_assert_not_null(p);
+    uint8_t *p = (uint8_t *)mem_alloc(a, OBJECT_SIZE, 1);
+    ASSERT_NE(p, nullptr);
     memset(p, 0xCC, OBJECT_SIZE);
     for (int i = 0; i < OBJECT_SIZE; ++i)
-        cr_assert_eq(p[i], (uint8_t)0xCC);
+        EXPECT_EQ(p[i], (uint8_t)0xCC);
 }
 
-Test(pool, free_returns_slot_to_pool)
+TEST_F(PoolTest, free_returns_slot_to_pool)
 {
     allocator_t a = pool_allocator(&pool);
     void *p1 = mem_alloc(a, OBJECT_SIZE, 1);
-    cr_assert_not_null(p1);
+    ASSERT_NE(p1, nullptr);
     mem_free(a, p1, OBJECT_SIZE);
     void *p2 = mem_alloc(a, OBJECT_SIZE, 1);
-    cr_assert_not_null(p2);
-    cr_assert_eq(p1, p2); /* same slot reused */
+    ASSERT_NE(p2, nullptr);
+    EXPECT_EQ(p1, p2); /* same slot reused */
 }
 
 /* ── capacity ───────────────────────────────────────────────────────────────
  */
 
-Test(pool, fills_to_capacity)
+TEST_F(PoolTest, fills_to_capacity)
 {
     allocator_t a = pool_allocator(&pool);
     for (size_t i = 0; i < CAPACITY; ++i)
     {
         void *p = mem_alloc(a, OBJECT_SIZE, 1);
-        cr_assert_not_null(p, "alloc %zu returned NULL", i);
+        ASSERT_NE(p, nullptr);
     }
-    cr_assert_eq(pool.count, (size_t)CAPACITY);
+    EXPECT_EQ(pool.count, (size_t)CAPACITY);
 }
 
-Test(pool, oom_beyond_capacity)
+TEST_F(PoolTest, oom_beyond_capacity)
 {
     allocator_t a = pool_allocator(&pool);
     for (size_t i = 0; i < CAPACITY; ++i)
         mem_alloc(a, OBJECT_SIZE, 1);
     void *p = mem_alloc(a, OBJECT_SIZE, 1);
-    cr_assert_null(p);
+    EXPECT_EQ(p, nullptr);
 }
 
-Test(pool, count_tracks_live_objects)
+TEST_F(PoolTest, count_tracks_live_objects)
 {
     allocator_t a = pool_allocator(&pool);
-    cr_assert_eq(pool.count, 0u);
+    EXPECT_EQ(pool.count, 0u);
 
     void *p = mem_alloc(a, OBJECT_SIZE, 1);
-    cr_assert_eq(pool.count, 1u);
+    EXPECT_EQ(pool.count, 1u);
 
     mem_free(a, p, OBJECT_SIZE);
-    cr_assert_eq(pool.count, 0u);
+    EXPECT_EQ(pool.count, 0u);
 }
 
 /* ── realloc ────────────────────────────────────────────────────────────────
  */
 
-Test(pool, realloc_within_slot_is_inplace)
+TEST_F(PoolTest, realloc_within_slot_is_inplace)
 {
     allocator_t a = pool_allocator(&pool);
     void *p = mem_alloc(a, OBJECT_SIZE, 1);
     void *p2 = mem_realloc(a, p, OBJECT_SIZE, OBJECT_SIZE / 2, 1);
-    cr_assert_eq(p, p2);
+    EXPECT_EQ(p, p2);
 }
 
-Test(pool, realloc_beyond_slot_returns_null)
+TEST_F(PoolTest, realloc_beyond_slot_returns_null)
 {
     allocator_t a = pool_allocator(&pool);
     void *p = mem_alloc(a, OBJECT_SIZE, 1);
     void *p2 = mem_realloc(a, p, OBJECT_SIZE, OBJECT_SIZE + 1, 1);
-    cr_assert_null(p2);
+    EXPECT_EQ(p2, nullptr);
 }
 
 /* ── reset ──────────────────────────────────────────────────────────────────
  */
 
-Test(pool, reset_restores_all_slots)
+TEST_F(PoolTest, reset_restores_all_slots)
 {
     allocator_t a = pool_allocator(&pool);
     for (size_t i = 0; i < CAPACITY; ++i)
         mem_alloc(a, OBJECT_SIZE, 1);
-    cr_assert_eq(pool.count, (size_t)CAPACITY);
+    EXPECT_EQ(pool.count, (size_t)CAPACITY);
 
     pool_reset(&pool);
 
-    cr_assert_eq(pool.count, 0u);
+    EXPECT_EQ(pool.count, 0u);
     for (size_t i = 0; i < CAPACITY; ++i)
     {
         void *p = mem_alloc(a, OBJECT_SIZE, 1);
-        cr_assert_not_null(p, "post-reset alloc %zu returned NULL", i);
+        ASSERT_NE(p, nullptr);
     }
 }
 
 /* ── slot size enforcement ──────────────────────────────────────────────────
  */
 
-Test(pool, alloc_rejects_oversized_request)
+TEST_F(PoolTest, alloc_rejects_oversized_request)
 {
     allocator_t a = pool_allocator(&pool);
     void *p = mem_alloc(a, OBJECT_SIZE + 1, 1);
-    cr_assert_null(p);
+    EXPECT_EQ(p, nullptr);
 }
 
 /* ── pointer alignment ──────────────────────────────────────────────────────
  */
 
-Test(pool, slots_are_pointer_aligned)
+TEST_F(PoolTest, slots_are_pointer_aligned)
 {
     allocator_t a = pool_allocator(&pool);
     for (size_t i = 0; i < CAPACITY; ++i)
     {
         void *p = mem_alloc(a, OBJECT_SIZE, 1);
-        cr_assert_eq(
-            (uintptr_t)p % sizeof(void *),
-            0u,
-            "slot %zu not pointer-aligned",
-            i);
+        EXPECT_EQ((uintptr_t)p % sizeof(void *), 0u);
     }
 }
 
-/* ── NULL-ptr contract ──────────────────────────────────────────────────────
+/* ── nullptr-ptr contract ──────────────────────────────────────────────────────
  */
 
-Test(pool, realloc_null_ptr_acts_as_alloc)
+TEST_F(PoolTest, realloc_null_ptr_acts_as_alloc)
 {
     allocator_t a = pool_allocator(&pool);
-    void *p = mem_realloc(a, NULL, 0, OBJECT_SIZE, 1);
-    cr_assert_not_null(p);
+    void *p = mem_realloc(a, nullptr, 0, OBJECT_SIZE, 1);
+    ASSERT_NE(p, nullptr);
 }
 
-Test(pool, free_null_is_noop)
+TEST_F(PoolTest, free_null_is_noop)
 {
     allocator_t a = pool_allocator(&pool);
-    mem_free(a, NULL, 0); /* pool_free dereferences ptr — guard is critical */
+    mem_free(a, nullptr, 0); /* pool_free dereferences ptr — guard is critical */
 }
 
 /* ── stats ──────────────────────────────────────────────────────────────────
  */
 
-Test(pool, stats_tracks_live_objects)
+TEST_F(PoolTest, stats_tracks_live_objects)
 {
     allocator_t a = pool_allocator(&pool);
     arena_stats_t s0 = pool_stats(&pool);
-    cr_assert_eq(s0.used, 0u);
-    cr_assert_eq(s0.capacity, (size_t)(OBJECT_SIZE * CAPACITY));
+    EXPECT_EQ(s0.used, 0u);
+    EXPECT_EQ(s0.capacity, (size_t)(OBJECT_SIZE * CAPACITY));
 
     mem_alloc(a, OBJECT_SIZE, 1);
     arena_stats_t s1 = pool_stats(&pool);
-    cr_assert_eq(s1.used, (size_t)OBJECT_SIZE);
+    EXPECT_EQ(s1.used, (size_t)OBJECT_SIZE);
 
     mem_alloc(a, OBJECT_SIZE, 1);
     arena_stats_t s2 = pool_stats(&pool);
-    cr_assert_eq(s2.used, (size_t)(2 * OBJECT_SIZE));
+    EXPECT_EQ(s2.used, (size_t)(2 * OBJECT_SIZE));
 }

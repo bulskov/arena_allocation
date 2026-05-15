@@ -1,3 +1,5 @@
+include(GoogleTest)
+
 set(TEST_SUITES
     test_fixed_arena
     test_growing_arena
@@ -10,11 +12,11 @@ set(TEST_SUITES
 
 foreach(suite ${TEST_SUITES})
     add_executable(${suite} ${suite}.c)
-    target_link_libraries(${suite} PRIVATE arena ${CRITERION_LIBRARIES})
+    set_source_files_properties(${suite}.c PROPERTIES LANGUAGE CXX)
+    target_link_libraries(${suite} PRIVATE arena GTest::gtest_main)
     target_include_directories(${suite} PRIVATE
-        ${CRITERION_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/src   # platform.h for virtual_arena test
     )
-    target_compile_options(${suite} PRIVATE ${CRITERION_CFLAGS_OTHER})
-    add_test(NAME ${suite} COMMAND ${suite})
+    set_target_properties(${suite} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON)
+    gtest_discover_tests(${suite})
 endforeach()
