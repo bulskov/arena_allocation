@@ -51,8 +51,8 @@ int *buf = mem_alloc(a, 256 * sizeof(int), _Alignof(int));
 growing_arena_reset(&arena);   // rewind; keep backing memory
 growing_arena_destroy(&arena); // release backing memory
 ```
-and if you want to seperate the arena and allocator creation
 
+If you need to separate arena initialisation from allocator creation:
 
 ```c
 #include "arena/growing_arena.h"
@@ -84,9 +84,11 @@ BUILD_TYPE=Release ./build.sh
 
 ## Testing
 
-Requires [Criterion](https://github.com/Snaipe/Criterion) ≥ 2.4.1.
+Tests use [Google Test](https://github.com/google/googletest), fetched
+automatically by CMake on first build — no manual installation needed.
 
 ```sh
+./build.sh   # also builds tests
 ./test.sh
 ```
 
