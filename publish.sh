@@ -30,5 +30,9 @@ echo "==> Creating ${ZIP_FILE}..."
 rm -f "$ZIP_FILE"
 (cd "$STAGE" && zip -r - "$DIST_NAME") > "$ZIP_FILE"
 
+echo "==> Updating dist/..."
+rm -rf dist
+cp -r "$STAGE/$DIST_NAME/" dist
+
 echo "==> Done: $ZIP_FILE"
 zipinfo "$ZIP_FILE"

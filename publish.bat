@@ -43,6 +43,10 @@ powershell -NoProfile -Command ^
     "Compress-Archive -Path '%STAGE%\%DIST_NAME%' -DestinationPath '%CD%\%ZIP_FILE%'"
 if errorlevel 1 exit /b 1
 
+echo =^> Updating dist\...
+if exist "dist" rmdir /s /q "dist"
+xcopy /e /i /q "%STAGE%\%DIST_NAME%" "dist\"
+
 rmdir /s /q "%STAGE%"
 
 echo =^> Done: %ZIP_FILE%
