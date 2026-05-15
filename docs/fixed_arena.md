@@ -1,29 +1,32 @@
 # fixed_arena_t
 
-Bump allocator over an **externally-provided buffer**. The caller owns the
-buffer and is responsible for its lifetime. The buffer may be a stack array,
-a global, or a region obtained from `mem_map()`.
-
-No mmap is performed by the arena itself — use `growing_arena_t` or
-`virtual_arena_t` if you want self-managed backing.
+Bump allocator over a contiguous memory region. Supports two construction
+modes: attach to an **externally-provided buffer** (caller owns it) or let the
+arena **allocate its own backing** via `mmap`/`VirtualAlloc`.
 
 ## Creator API
 
 ```c
 void  fixed_arena_init(fixed_arena_t *a, void *buf, size_t size);
+int   fixed_arena_create(fixed_arena_t *a, size_t size);
+void  fixed_arena_destroy(fixed_arena_t *a);
 void  fixed_arena_reset(fixed_arena_t *a);
 void  fixed_arena_scratch_begin(scratch_t *s, fixed_arena_t *a);
 allocator_t   fixed_arena_allocator(fixed_arena_t *a);
+allocator_t   fixed_arena_allocator_new(fixed_arena_t *a, size_t size);
 arena_stats_t fixed_arena_stats(const fixed_arena_t *a);
 ```
 
-| Function           | Description                                                 |
-| ------------------ | ----------------------------------------------------------- |
-| `init(buf, size)`  | Attach to an existing buffer. No allocation.                |
-| `reset()`          | Rewind bump pointer to zero. Buffer contents are untouched. |
-| `scratch_begin(s)` | Save current offset; see [scratch_t](scratch.md).           |
-| `allocator()`      | Produce an `allocator_t` for user code.                     |
-| `stats()`          | Return current usage snapshot.                              |
+| Function                | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `init(buf, size)`       | Attach to an existing buffer. Arena does **not** own the buffer.                     |
+| `create(a, size)`       | Allocate `size` bytes via mmap/VirtualAlloc. Arena owns the memory. Returns 0 on success, -1 on failure. |
+| `destroy(a)`            | Release backing memory if owned; no-op if `init` was used. Safe to call twice.      |
+| `reset()`               | Rewind bump pointer to zero. Buffer contents are untouched.                          |
+| `scratch_begin(s)`      | Save current offset; see [scratch_t](scratch.md).                                   |
+| `allocator()`           | Produce an `allocator_t` for user code.                                              |
+| `allocator_new(a, size)`| `create` + `allocator` in one call. Returns `ALLOCATOR_NULL` on failure.            |
+| `stats()`               | Return current usage snapshot.                                                       |
 
 ## Allocator behaviour
 
@@ -39,9 +42,10 @@ Memory is **not zeroed** on alloc or reset. Use `mem_calloc` for zero-init.
 
 - Fixed capacity; returns NULL when exhausted — no growth.
 - Individual frees are no-ops; reclaim memory via `reset()` or `scratch_end()`.
-- Does not own its buffer; caller must keep the buffer alive.
 
 ## Typical use
+
+### External buffer (stack / global)
 
 ```c
 uint8_t buf[4096];
@@ -52,4 +56,28 @@ allocator_t a = fixed_arena_allocator(&arena);
 MyStruct *s = mem_alloc(a, sizeof(MyStruct), _Alignof(MyStruct));
 
 fixed_arena_reset(&arena); /* reuse the same buffer */
+```
+
+### Owned backing memory
+
+```c
+fixed_arena_t arena;
+if (fixed_arena_create(&arena, 4096) != 0) { /* handle error */ }
+
+allocator_t a = fixed_arena_allocator(&arena);
+MyStruct *s = mem_alloc(a, sizeof(MyStruct), _Alignof(MyStruct));
+
+fixed_arena_destroy(&arena); /* releases the mmap'd region */
+```
+
+### One-liner convenience
+
+```c
+fixed_arena_t arena;
+allocator_t a = fixed_arena_allocator_new(&arena, 4096);
+if (a.ctx == NULL) { /* handle error */ }
+
+/* ... use a ... */
+
+fixed_arena_destroy(&arena);
 ```
