@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 
-extern "C" {
+extern "C"
+{
 #include "arena/fixed_arena.h"
 }
 
@@ -17,13 +18,11 @@ static const allocator_t ALLOCATOR_NULL = {};
 static uint8_t buf[BUF_SIZE];
 static fixed_arena_t arena;
 
-class fixed_arena : public ::testing::Test {
-protected:
-    void SetUp() override
-    {
-        fixed_arena_init(&arena, buf, BUF_SIZE);
-    }
-};
+class fixed_arena : public ::testing::Test{
+    protected : void SetUp() override{fixed_arena_init(&arena, buf, BUF_SIZE);
+}
+}
+;
 
 /* ── basic allocation ───────────────────────────────────────────────────────
  */
@@ -199,7 +198,8 @@ TEST_F(fixed_arena, scratch_alloc_is_visible_before_end)
     scratch_end(&s);
 }
 
-/* ── nullptr-ptr contract ──────────────────────────────────────────────────────
+/* ── nullptr-ptr contract
+ * ──────────────────────────────────────────────────────
  */
 
 TEST_F(fixed_arena, realloc_null_ptr_acts_as_alloc)
@@ -264,10 +264,12 @@ TEST_F(fixed_arena, allocator_null_free_is_noop)
     uint8_t tmp[4];
     mem_free(ALLOCATOR_NULL, tmp, 4); /* vt==nullptr — must not crash */
 }
-/* \u2500\u2500 owned (mmap-backed) arena \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+/* \u2500\u2500 owned (mmap-backed) arena
+ * \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
  */
 
-class fixed_arena_owned : public ::testing::Test {
+class fixed_arena_owned : public ::testing::Test
+{
 protected:
     fixed_arena_t arena;
     void SetUp() override
@@ -276,7 +278,8 @@ protected:
     }
     void TearDown() override
     {
-        fixed_arena_destroy(&arena); /* idempotent \u2014 safe even if test called it */
+        fixed_arena_destroy(
+            &arena); /* idempotent \u2014 safe even if test called it */
     }
 };
 

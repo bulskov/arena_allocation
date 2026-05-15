@@ -11,10 +11,10 @@ static inline size_t align_up(size_t val, size_t align)
 
 void fixed_arena_init(fixed_arena_t *a, void *buf, size_t size)
 {
-    a->base   = (uint8_t *)buf;
-    a->size   = size;
+    a->base = (uint8_t *)buf;
+    a->size = size;
     a->offset = 0;
-    a->owned  = 0;
+    a->owned = 0;
 }
 
 int fixed_arena_create(fixed_arena_t *a, size_t size)
@@ -22,16 +22,16 @@ int fixed_arena_create(fixed_arena_t *a, size_t size)
     void *buf = mem_map(size);
     if (!buf)
     {
-        a->base   = NULL;
-        a->size   = 0;
+        a->base = NULL;
+        a->size = 0;
         a->offset = 0;
-        a->owned  = 0;
+        a->owned = 0;
         return -1;
     }
-    a->base   = (uint8_t *)buf;
-    a->size   = size;
+    a->base = (uint8_t *)buf;
+    a->size = size;
     a->offset = 0;
-    a->owned  = 1;
+    a->owned = 1;
     return 0;
 }
 
@@ -39,10 +39,10 @@ void fixed_arena_destroy(fixed_arena_t *a)
 {
     if (a->owned && a->base)
         mem_unmap(a->base, a->size);
-    a->base   = NULL;
-    a->size   = 0;
+    a->base = NULL;
+    a->size = 0;
     a->offset = 0;
-    a->owned  = 0;
+    a->owned = 0;
 }
 
 void fixed_arena_reset(fixed_arena_t *a)
