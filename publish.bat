@@ -9,7 +9,7 @@ set ZIP_FILE=%DIST_NAME%.zip
 echo =^> Building release...
 cmake -S . -B "%BUILD_DIR%" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
 if errorlevel 1 exit /b 1
-cmake --build "%BUILD_DIR%" --target arena --parallel %NUMBER_OF_PROCESSORS%
+cmake --build "%BUILD_DIR%" --target arena --config Release --parallel %NUMBER_OF_PROCESSORS%
 if errorlevel 1 exit /b 1
 
 echo =^> Staging...

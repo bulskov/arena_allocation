@@ -77,3 +77,16 @@ typedef struct {
 The creator holds the **concrete** arena type and controls reset / destroy.
 User code only receives `allocator_t` and cannot end the lifetime. The vtable
 deliberately has no `destroy` operation.
+
+## Thread safety
+
+**None.** Every arena type is single-threaded by design.
+
+- Do not share an arena between threads without external synchronisation.
+- The intended pattern is **one arena per thread**: each thread owns its
+  arenas for its entire lifetime and never hands them to another thread.
+- `allocator_t` values (fat pointers) may be passed freely — they carry no
+  state themselves — but the underlying arena they point to must only be
+  driven from one thread at a time.
+- There is no plan to add internal locking; a mutex would defeat the
+  purpose of bump allocation.
