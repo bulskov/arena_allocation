@@ -4,7 +4,8 @@ setlocal
 set DIST_NAME=arena_allocator
 set BUILD_DIR=build_publish
 set STAGE=_publish_stage
-set ZIP_FILE=%DIST_NAME%.zip
+set /p VERSION=<VERSION
+set ZIP_FILE=%DIST_NAME%-%VERSION%.zip
 
 echo =^> Building release...
 cmake -S . -B "%BUILD_DIR%" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
@@ -31,6 +32,8 @@ if exist "%BUILD_DIR%\Release\arena.lib" (
 )
 
 xcopy /e /i /q "include\arena" "%STAGE%\%DIST_NAME%\include\arena\"
+copy "%BUILD_DIR%\include\arena\version.h" "%STAGE%\%DIST_NAME%\include\arena\"
+del "%STAGE%\%DIST_NAME%\include\arena\version.h.in"
 xcopy /q "docs\*.md" "%STAGE%\%DIST_NAME%\docs\"
 copy "README.md" "%STAGE%\%DIST_NAME%\"
 

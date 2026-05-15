@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.15)
-project(arena C CXX)
+
+file(READ "${CMAKE_SOURCE_DIR}/VERSION" _arena_ver)
+string(STRIP "${_arena_ver}" _arena_ver)
+project(arena VERSION ${_arena_ver} LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+configure_file(
+    include/arena/version.h.in
+    ${CMAKE_BINARY_DIR}/include/arena/version.h
+)
 
 add_library(arena STATIC
     src/platform.c
@@ -16,7 +24,7 @@ add_library(arena STATIC
     src/debug_allocator.c
 )
 
-target_include_directories(arena PUBLIC  include)
+target_include_directories(arena PUBLIC  include ${CMAKE_BINARY_DIR}/include)
 target_include_directories(arena PRIVATE src)
 
 target_compile_options(arena PRIVATE

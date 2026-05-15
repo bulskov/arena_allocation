@@ -3,7 +3,8 @@ set -euo pipefail
 
 DIST_NAME="arena_allocator"
 BUILD_DIR="build_publish"
-ZIP_FILE="${DIST_NAME}.zip"
+VERSION=$(cat VERSION)
+ZIP_FILE="${DIST_NAME}-${VERSION}.zip"
 
 echo "==> Building release..."
 cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF > /dev/null
@@ -20,6 +21,8 @@ mkdir -p \
 
 cp "$BUILD_DIR/libarena.a"  "$STAGE/$DIST_NAME/lib/"
 cp -r include/arena          "$STAGE/$DIST_NAME/include/"
+cp "$BUILD_DIR/include/arena/version.h" "$STAGE/$DIST_NAME/include/arena/"
+rm "$STAGE/$DIST_NAME/include/arena/version.h.in"
 cp docs/*.md                 "$STAGE/$DIST_NAME/docs/"
 cp README.md                 "$STAGE/$DIST_NAME/"
 
