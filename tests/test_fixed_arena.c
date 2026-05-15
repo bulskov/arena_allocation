@@ -264,3 +264,49 @@ TEST_F(fixed_arena, allocator_null_free_is_noop)
     uint8_t tmp[4];
     mem_free(ALLOCATOR_NULL, tmp, 4); /* vt==nullptr — must not crash */
 }
+/* \u2500\u2500 owned (mmap-backed) arena \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+ */
+
+class fixed_arena_owned : public ::testing::Test {
+protected:
+    fixed_arena_t arena;
+    void SetUp() override
+    {
+        ASSERT_EQ(fixed_arena_create(&arena, BUF_SIZE), 0);
+    }
+    void TearDown() override
+    {
+        fixed_arena_destroy(&arena); /* idempotent \u2014 safe even if test called it */
+    }
+};
+
+TEST_F(fixed_arena_owned, create_gives_usable_backing)
+{
+    EXPECT_NE(arena.base, nullptr);
+    EXPECT_EQ(arena.size, (size_t)BUF_SIZE);
+    EXPECT_EQ(arena.offset, (size_t)0);
+    EXPECT_EQ(arena.owned, 1);
+}
+
+TEST_F(fixed_arena_owned, alloc_works)
+{
+    void *p = mem_alloc(fixed_arena_allocator(&arena), 64, 8);
+    EXPECT_NE(p, nullptr);
+}
+
+TEST_F(fixed_arena_owned, destroy_clears_struct)
+{
+    fixed_arena_destroy(&arena);
+    EXPECT_EQ(arena.base, nullptr);
+    EXPECT_EQ(arena.owned, 0);
+}
+
+TEST(fixed_arena_allocator_new_test, returns_valid_allocator)
+{
+    fixed_arena_t a;
+    allocator_t alloc = fixed_arena_allocator_new(&a, BUF_SIZE);
+    ASSERT_NE(alloc.vt, nullptr);
+    void *p = mem_alloc(alloc, 64, 8);
+    EXPECT_NE(p, nullptr);
+    fixed_arena_destroy(&a);
+}

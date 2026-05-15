@@ -1,4 +1,5 @@
 #include "arena/fixed_arena.h"
+#include "platform.h"
 #include <string.h>
 
 static inline size_t align_up(size_t val, size_t align)
@@ -10,9 +11,38 @@ static inline size_t align_up(size_t val, size_t align)
 
 void fixed_arena_init(fixed_arena_t *a, void *buf, size_t size)
 {
-    a->base = (uint8_t *)buf;
-    a->size = size;
+    a->base   = (uint8_t *)buf;
+    a->size   = size;
     a->offset = 0;
+    a->owned  = 0;
+}
+
+int fixed_arena_create(fixed_arena_t *a, size_t size)
+{
+    void *buf = mem_map(size);
+    if (!buf)
+    {
+        a->base   = NULL;
+        a->size   = 0;
+        a->offset = 0;
+        a->owned  = 0;
+        return -1;
+    }
+    a->base   = (uint8_t *)buf;
+    a->size   = size;
+    a->offset = 0;
+    a->owned  = 1;
+    return 0;
+}
+
+void fixed_arena_destroy(fixed_arena_t *a)
+{
+    if (a->owned && a->base)
+        mem_unmap(a->base, a->size);
+    a->base   = NULL;
+    a->size   = 0;
+    a->offset = 0;
+    a->owned  = 0;
 }
 
 void fixed_arena_reset(fixed_arena_t *a)
@@ -77,6 +107,13 @@ static const allocator_vtable_t fixed_arena_vtable = {
 allocator_t fixed_arena_allocator(fixed_arena_t *a)
 {
     return (allocator_t){.vt = &fixed_arena_vtable, .ctx = a};
+}
+
+allocator_t fixed_arena_allocator_new(fixed_arena_t *a, size_t size)
+{
+    if (fixed_arena_create(a, size) != 0)
+        return ALLOCATOR_NULL;
+    return fixed_arena_allocator(a);
 }
 
 arena_stats_t fixed_arena_stats(const fixed_arena_t *a)
