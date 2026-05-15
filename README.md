@@ -51,6 +51,25 @@ int *buf = mem_alloc(a, 256 * sizeof(int), _Alignof(int));
 growing_arena_reset(&arena);   // rewind; keep backing memory
 growing_arena_destroy(&arena); // release backing memory
 ```
+and if you want to seperate the arena and allocator creation
+
+
+```c
+#include "arena/growing_arena.h"
+
+growing_arena_t arena;
+growing_arena_init(&arena, 64 * 1024);
+
+// ... some other code ...
+
+allocator_t a = growing_arena_allocator(&arena);
+
+int *buf = mem_alloc(a, 256 * sizeof(int), _Alignof(int));
+// ... use buf ...
+
+growing_arena_reset(&arena);   // rewind; keep backing memory
+growing_arena_destroy(&arena); // release backing memory
+```
 
 ## Allocator interface
 
