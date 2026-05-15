@@ -32,7 +32,8 @@ rm -f "$ZIP_FILE"
 
 echo "==> Updating dist/..."
 rm -rf dist
-cp -r "$STAGE/$DIST_NAME/" dist
+mkdir dist
+cp -r "$STAGE/$DIST_NAME" "dist/${DIST_NAME}-${VERSION}"
 
 echo "==> Done: $ZIP_FILE"
 zipinfo "$ZIP_FILE"

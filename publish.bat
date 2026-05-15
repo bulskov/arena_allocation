@@ -45,7 +45,8 @@ if errorlevel 1 exit /b 1
 
 echo =^> Updating dist\...
 if exist "dist" rmdir /s /q "dist"
-xcopy /e /i /q "%STAGE%\%DIST_NAME%" "dist\"
+mkdir "dist\%DIST_NAME%-%VERSION%"
+xcopy /e /i /q "%STAGE%\%DIST_NAME%" "dist\%DIST_NAME%-%VERSION%\"
 
 rmdir /s /q "%STAGE%"
 
