@@ -1,3 +1,9 @@
+/* madvise()/MADV_DONTNEED are glibc extensions guarded by _DEFAULT_SOURCE;
+ * define it so the POSIX paths compile under strict -std=c11 (no -std=gnu11). */
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
 #include "platform.h"
 
 /* ========================================================================= */
