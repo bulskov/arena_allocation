@@ -1,5 +1,6 @@
 #include "arena/pool.h"
 #include "platform.h"
+#include <assert.h>
 
 static inline size_t align_up(size_t val, size_t align)
 {
@@ -73,6 +74,8 @@ void pool_reset(pool_t *p)
 static void *pool_alloc(void *ctx, size_t size, size_t align)
 {
     pool_t *p = (pool_t *)ctx;
+    assert(align >= 1 && (align & (align - 1)) == 0); /* power of two */
+    assert(align <= sizeof(void *)); /* pool guarantees only pointer alignment */
     (void)align;
     if (size > p->slot_size || !p->free_list)
         return NULL;

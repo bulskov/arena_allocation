@@ -1,5 +1,6 @@
 #include "arena/stack_arena.h"
 #include "platform.h"
+#include <assert.h>
 #include <string.h>
 
 static inline size_t align_up(size_t v, size_t a)
@@ -51,7 +52,9 @@ void stack_arena_reset(stack_arena_t *a)
 static void *stack_alloc(void *ctx, size_t size, size_t align)
 {
     stack_arena_t *a = (stack_arena_t *)ctx;
-    (void)align; /* clamped to min_align */
+    assert(align >= 1 && (align & (align - 1)) == 0); /* power of two */
+    assert(align <= a->min_align); /* honoured only up to min_align */
+    (void)align;                   /* clamped to min_align */
     uintptr_t base = (uintptr_t)a->base;
     uintptr_t adr = align_up(base + a->offset, a->min_align);
     size_t slot = align_up(size, a->min_align);
@@ -68,6 +71,8 @@ static void *stack_realloc(
     if (!ptr)
         return stack_alloc(ctx, new_size, align);
     stack_arena_t *a = (stack_arena_t *)ctx;
+    assert(align >= 1 && (align & (align - 1)) == 0); /* power of two */
+    assert(align <= a->min_align); /* honoured only up to min_align */
     (void)align;
     uintptr_t base = (uintptr_t)a->base;
     uintptr_t p = (uintptr_t)ptr;
