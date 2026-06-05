@@ -12,6 +12,8 @@ static inline size_t align_up(size_t v, size_t a)
 int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align)
 {
     size_t page = mem_page_size();
+    if (capacity == 0 || capacity > SIZE_MAX - (page - 1)) /* align_up overflow */
+        return -1;
     size_t total = align_up(capacity, page);
     uint8_t *base = (uint8_t *)mem_map(total);
     if (!base)

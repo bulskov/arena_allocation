@@ -31,6 +31,9 @@ int virtual_arena_init(
     virtual_arena_t *a, size_t reserved_size, size_t commit_chunk)
 {
     size_t page = mem_page_size();
+    if (reserved_size == 0 || reserved_size > SIZE_MAX - (page - 1) ||
+        commit_chunk > SIZE_MAX - (page - 1)) /* align_up overflow */
+        return -1;
     a->reserved = align_up(reserved_size, page);
     a->commit_chunk = align_up(commit_chunk, page);
     a->committed = 0;

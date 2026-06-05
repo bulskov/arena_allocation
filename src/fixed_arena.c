@@ -19,7 +19,7 @@ void fixed_arena_init(fixed_arena_t *a, void *buf, size_t size)
 
 int fixed_arena_create(fixed_arena_t *a, size_t size)
 {
-    void *buf = mem_map(size);
+    void *buf = size ? mem_map(size) : NULL;
     if (!buf)
     {
         a->base = NULL;

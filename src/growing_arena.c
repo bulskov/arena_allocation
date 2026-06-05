@@ -15,6 +15,10 @@ static inline uint8_t *block_data(growing_arena_block_t *b)
 static growing_arena_block_t *new_block(size_t min_data, size_t page_size)
 {
     size_t header = sizeof(growing_arena_block_t);
+    /* Guard header + min_data and the subsequent align_up against overflow. */
+    if (min_data > SIZE_MAX - header ||
+        header + min_data > SIZE_MAX - (page_size - 1))
+        return NULL;
     size_t total = align_up(header + min_data, page_size);
     growing_arena_block_t *b = (growing_arena_block_t *)mem_map(total);
     if (!b)
@@ -34,8 +38,12 @@ static void free_block(growing_arena_block_t *b)
 
 void growing_arena_init(growing_arena_t *a, size_t block_size)
 {
+    size_t page = mem_page_size();
     a->head = NULL;
-    a->block_size = align_up(block_size, mem_page_size());
+    /* Avoid an align_up wrap; oversized requests are clamped, and new_block
+     * still guards each actual allocation against overflow. */
+    a->block_size =
+        block_size > SIZE_MAX - (page - 1) ? block_size : align_up(block_size, page);
 }
 
 void growing_arena_destroy(growing_arena_t *a)

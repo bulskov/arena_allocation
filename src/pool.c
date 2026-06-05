@@ -24,13 +24,25 @@ static void build_free_list(pool_t *p)
 
 int pool_init(pool_t *p, size_t object_size, size_t capacity)
 {
+    if (object_size == 0 || capacity == 0)
+        return -1;
+
     /* Each slot must accommodate a free-list pointer and be pointer-aligned. */
     size_t slot = object_size < sizeof(pool_free_node_t *)
                       ? sizeof(pool_free_node_t *)
                       : object_size;
+    if (slot > SIZE_MAX - (sizeof(void *) - 1)) /* align_up overflow */
+        return -1;
     slot = align_up(slot, sizeof(void *));
 
-    size_t total = align_up(slot * capacity, mem_page_size());
+    size_t page = mem_page_size();
+    if (slot > SIZE_MAX / capacity)         /* slot * capacity overflow */
+        return -1;
+    size_t bytes = slot * capacity;
+    if (bytes > SIZE_MAX - (page - 1))      /* align_up overflow */
+        return -1;
+    size_t total = align_up(bytes, page);
+
     uint8_t *base = (uint8_t *)mem_map(total);
     if (!base)
         return -1;
