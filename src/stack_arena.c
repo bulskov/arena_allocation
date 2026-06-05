@@ -25,9 +25,12 @@ int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align)
 
 void stack_arena_destroy(stack_arena_t *a)
 {
-    mem_unmap(a->base, a->capacity);
+    if (a->base)
+        mem_unmap(a->base, a->capacity);
     a->base = NULL;
+    a->capacity = 0;
     a->offset = 0;
+    a->min_align = 0;
 }
 
 void stack_arena_reset(stack_arena_t *a)

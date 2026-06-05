@@ -39,7 +39,7 @@ static void update_peak(debug_allocator_t *d)
 static void *debug_alloc(void *ctx, size_t size, size_t align)
 {
     debug_allocator_t *d = (debug_allocator_t *)ctx;
-    void *p = d->inner.vt->alloc(d->inner.ctx, size, align);
+    void *p = mem_alloc(d->inner, size, align);
     if (!p)
         return NULL;
     memset(p, SENTINEL_ALLOC, size);
@@ -58,8 +58,7 @@ static void *debug_realloc(
     if (!ptr)
         return debug_alloc(ctx, new_size, align);
 
-    void *result =
-        d->inner.vt->realloc(d->inner.ctx, ptr, old_size, new_size, align);
+    void *result = mem_realloc(d->inner, ptr, old_size, new_size, align);
     if (!result)
         return NULL;
 
@@ -99,7 +98,7 @@ static void debug_free(void *ctx, void *ptr, size_t size)
         return;
     debug_allocator_t *d = (debug_allocator_t *)ctx;
     memset(ptr, SENTINEL_FREE, size);
-    d->inner.vt->free(d->inner.ctx, ptr, size);
+    mem_free(d->inner, ptr, size);
     d->free_count++;
     d->bytes_live -= size;
 }
