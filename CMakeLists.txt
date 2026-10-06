@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" _arena_ver)
 string(STRIP "${_arena_ver}" _arena_ver)
-project(arena VERSION ${_arena_ver} LANGUAGES C CXX)
+project(arena VERSION ${_arena_ver} LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -34,7 +34,7 @@ target_compile_options(arena PRIVATE
 
 # ── Tests ────────────────────────────────────────────────────────────────────
 # Only build arena's own tests when it is the top-level project, so consumers
-# (e.g. via FetchContent / add_subdirectory) don't pull googletest or build the
+# (e.g. via FetchContent / add_subdirectory) don't pull ctt or build the
 # arena test suite.
 if(NOT DEFINED PROJECT_IS_TOP_LEVEL)
     if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -48,14 +48,12 @@ option(BUILD_TESTING "Build test suite" ON)
 if(BUILD_TESTING AND PROJECT_IS_TOP_LEVEL)
     include(FetchContent)
     FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        v1.16.0
+        ctt
+        GIT_REPOSITORY https://github.com/bulskov/ctt.git
+        GIT_TAG        v0.3.1
         GIT_SHALLOW    TRUE
     )
-    # Prevent overriding the parent project's compiler/linker settings on Windows
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
+    FetchContent_MakeAvailable(ctt)
     enable_testing()
     add_subdirectory(tests)
 endif()

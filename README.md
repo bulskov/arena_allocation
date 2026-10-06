@@ -84,7 +84,7 @@ BUILD_TYPE=Release ./build.sh
 
 ## Testing
 
-Tests use [Google Test](https://github.com/google/googletest), fetched
+Tests use [ctt](https://github.com/bulskov/ctt), fetched
 automatically by CMake on first build — no manual installation needed.
 
 ```sh

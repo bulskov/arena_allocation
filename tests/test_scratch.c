@@ -1,17 +1,16 @@
-#include <gtest/gtest.h>
+#include "ctt.h"
+
 #include <stdint.h>
 #include <string.h>
 
-extern "C" {
 #include "arena/fixed_arena.h"
 #include "arena/growing_arena.h"
 #include "arena/virtual_arena.h"
-}
 
 /* ── scratch over fixed_arena ───────────────────────────────────────────
  */
 
-TEST(scratch_fixed, begin_end_roundtrip)
+TEST(fixed_begin_end_roundtrip)
 {
     uint8_t buf[512];
     fixed_arena_t a;
@@ -20,12 +19,12 @@ TEST(scratch_fixed, begin_end_roundtrip)
     scratch_t s;
     fixed_arena_scratch_begin(&s, &a);
     mem_alloc(scratch_allocator(&s), 256, 1);
-    EXPECT_GT(a.offset, 0u);
+    ASSERT_GT(a.offset, 0u);
     scratch_end(&s);
-    EXPECT_EQ(a.offset, 0u);
+    ASSERT_EQ(0u, a.offset);
 }
 
-TEST(scratch_fixed, nested_lifo)
+TEST(fixed_nested_lifo)
 {
     uint8_t buf[512];
     fixed_arena_t a;
@@ -40,13 +39,13 @@ TEST(scratch_fixed, nested_lifo)
     mem_alloc(scratch_allocator(&inner), 64, 1);
 
     scratch_end(&inner);
-    EXPECT_EQ(a.offset, after_outer_alloc); /* inner rewound */
+    ASSERT_EQ(after_outer_alloc, a.offset); /* inner rewound */
 
     scratch_end(&outer);
-    EXPECT_EQ(a.offset, 0u); /* outer rewound */
+    ASSERT_EQ(0u, a.offset); /* outer rewound */
 }
 
-TEST(scratch_fixed, parent_alloc_unaffected_after_end)
+TEST(fixed_parent_alloc_unaffected_after_end)
 {
     uint8_t buf[512];
     fixed_arena_t a;
@@ -63,14 +62,14 @@ TEST(scratch_fixed, parent_alloc_unaffected_after_end)
 
     /* The pre-scratch allocation must be intact. */
     for (int i = 0; i < 32; ++i)
-        EXPECT_EQ(p_before[i], (uint8_t)0xAB);
+        ASSERT_EQ((uint8_t)0xAB, p_before[i]);
 }
 
 /* ── scratch over growing_arena ─────────────────────────────────────────────
  */
 
 
-TEST(scratch_growing, begin_end_empty_arena)
+TEST(growing_begin_end_empty_arena)
 {
     growing_arena_t a;
     growing_arena_init(&a, 256);
@@ -82,12 +81,12 @@ TEST(scratch_growing, begin_end_empty_arena)
     scratch_end(&s);
 
     /* Arena should be back to empty. */
-    EXPECT_EQ(a.head, nullptr);
+    ASSERT_NULL(a.head);
 
     growing_arena_destroy(&a);
 }
 
-TEST(scratch_growing, blocks_added_in_scratch_are_freed)
+TEST(growing_blocks_added_in_scratch_are_freed)
 {
     growing_arena_t a;
     growing_arena_init(&a, 64);
@@ -102,8 +101,8 @@ TEST(scratch_growing, blocks_added_in_scratch_are_freed)
         mem_alloc(scratch_allocator(&s), 64, 1); /* forces new blocks */
     scratch_end(&s);
 
-    EXPECT_EQ(a.head, head_before);
-    EXPECT_EQ(a.head->next, nullptr);
+    ASSERT_PTR_EQ(head_before, a.head);
+    ASSERT_NULL(a.head->next);
 
     growing_arena_destroy(&a);
 }
@@ -112,28 +111,28 @@ TEST(scratch_growing, blocks_added_in_scratch_are_freed)
  */
 
 
-TEST(scratch_virtual, begin_end_roundtrip)
+TEST(virtual_begin_end_roundtrip)
 {
     virtual_arena_t a;
-    EXPECT_EQ(virtual_arena_init(&a, 4 * 1024 * 1024, 64 * 1024), 0);
+    ASSERT_EQ(0, virtual_arena_init(&a, 4 * 1024 * 1024, 64 * 1024));
 
     scratch_t s;
     virtual_arena_scratch_begin(&s, &a);
     mem_alloc(scratch_allocator(&s), 128 * 1024, 1);
     size_t committed_peak = a.committed;
-    EXPECT_GT(committed_peak, 0u);
+    ASSERT_GT(committed_peak, 0u);
 
     scratch_end(&s);
-    EXPECT_EQ(a.offset, 0u);
-    EXPECT_LT(a.committed, committed_peak);
+    ASSERT_EQ(0u, a.offset);
+    ASSERT_LT(a.committed, committed_peak);
 
     virtual_arena_destroy(&a);
 }
 
-TEST(scratch_virtual, parent_retains_its_pages)
+TEST(virtual_parent_retains_its_pages)
 {
     virtual_arena_t a;
-    EXPECT_EQ(virtual_arena_init(&a, 4 * 1024 * 1024, 64 * 1024), 0);
+    ASSERT_EQ(0, virtual_arena_init(&a, 4 * 1024 * 1024, 64 * 1024));
 
     allocator_t main_alloc = virtual_arena_allocator(&a);
     uint8_t *p = (uint8_t *)mem_alloc(main_alloc, 64, 1);
@@ -147,9 +146,14 @@ TEST(scratch_virtual, parent_retains_its_pages)
      * scratch_end decommits pages beyond the saved offset — correct behaviour.
      * The page covering p is still committed, so the data must be intact.
      */
-    EXPECT_GE(a.committed, (size_t)((p + 64) - a.base));
+    ASSERT_GE(a.committed, (size_t)((p + 64) - a.base));
     for (int i = 0; i < 64; ++i)
-        EXPECT_EQ(p[i], (uint8_t)0x9E);
+        ASSERT_EQ((uint8_t)0x9E, p[i]);
 
     virtual_arena_destroy(&a);
+}
+
+int main(int argc, char *argv[])
+{
+    return ctt_main(argc, argv, "scratch");
 }

@@ -1,11 +1,10 @@
-#include <gtest/gtest.h>
+#include "ctt.h"
+
 #include <stdint.h>
 #include <string.h>
 
-extern "C" {
 #include "arena/virtual_arena.h"
 #include "platform.h" /* mem_page_size */
-}
 
 /* Reserve 16 MB, commit in 64 KB chunks. */
 #define RESERVED (16u * 1024u * 1024u)
@@ -13,164 +12,165 @@ extern "C" {
 
 static virtual_arena_t arena;
 
-class virtual_arena : public ::testing::Test {
-protected:
-    void SetUp() override
-    {
-        ASSERT_EQ(virtual_arena_init(&arena, RESERVED, COMMIT_CHUNK), 0);
-    }
-    void TearDown() override { virtual_arena_destroy(&arena); }
-};
+void ctt_before_each(void)
+{
+    ASSERT_EQ(virtual_arena_init(&arena, RESERVED, COMMIT_CHUNK), 0);
+}
+
+void ctt_after_each(void)
+{
+    virtual_arena_destroy(&arena);
+}
 
 /* ── basic allocation ───────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, alloc_returns_nonnull)
+TEST(alloc_returns_nonnull)
 {
     void *p = mem_alloc(virtual_arena_allocator(&arena), 64, 1);
-    ASSERT_NE(p, nullptr);
+    ASSERT_NOT_NULL(p);
 }
 
-TEST_F(virtual_arena, alloc_writes_are_readable)
+TEST(alloc_writes_are_readable)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     uint8_t *p = (uint8_t *)mem_alloc(a, 16, 1);
-    ASSERT_NE(p, nullptr);
+    ASSERT_NOT_NULL(p);
     memset(p, 0xF0, 16);
     for (int i = 0; i < 16; ++i)
-        EXPECT_EQ(p[i], (uint8_t)0xF0);
+        ASSERT_EQ((uint8_t)0xF0, p[i]);
 }
 
-TEST_F(virtual_arena, alloc_advances_sequentially)
+TEST(alloc_advances_sequentially)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     uint8_t *p1 = (uint8_t *)mem_alloc(a, 32, 1);
     uint8_t *p2 = (uint8_t *)mem_alloc(a, 32, 1);
-    ASSERT_NE(p1, nullptr);
-    ASSERT_NE(p2, nullptr);
-    EXPECT_EQ((uintptr_t)p2 - (uintptr_t)p1, 32u);
+    ASSERT_NOT_NULL(p1);
+    ASSERT_NOT_NULL(p2);
+    ASSERT_EQ(32u, (uintptr_t)p2 - (uintptr_t)p1);
 }
 
 /* ── alignment ──────────────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, alignment_8)
+TEST(alignment_8)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     mem_alloc(a, 3, 1);
     void *p = mem_alloc(a, 8, 8);
-    ASSERT_NE(p, nullptr);
-    EXPECT_EQ((uintptr_t)p % 8, 0u);
+    ASSERT_NOT_NULL(p);
+    ASSERT_EQ(0u, (uintptr_t)p % 8);
 }
 
-TEST_F(virtual_arena, alignment_64)
+TEST(alignment_64)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     mem_alloc(a, 7, 1);
     void *p = mem_alloc(a, 64, 64);
-    ASSERT_NE(p, nullptr);
-    EXPECT_EQ((uintptr_t)p % 64, 0u);
+    ASSERT_NOT_NULL(p);
+    ASSERT_EQ(0u, (uintptr_t)p % 64);
 }
 
 /* ── commit on demand ───────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, nothing_committed_before_first_alloc)
+TEST(nothing_committed_before_first_alloc)
 {
-    EXPECT_EQ(arena.committed, 0u);
+    ASSERT_EQ(0u, arena.committed);
 }
 
-TEST_F(virtual_arena, commits_on_first_alloc)
+TEST(commits_on_first_alloc)
 {
     mem_alloc(virtual_arena_allocator(&arena), 1, 1);
-    EXPECT_GT(arena.committed, 0u);
+    ASSERT_GT(arena.committed, 0u);
 }
 
-TEST_F(virtual_arena, committed_grows_in_chunks)
+TEST(committed_grows_in_chunks)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     /* First alloc triggers the first commit chunk. */
     mem_alloc(a, 1, 1);
     size_t committed_after_first = arena.committed;
-    EXPECT_EQ(committed_after_first, COMMIT_CHUNK);
+    ASSERT_EQ(COMMIT_CHUNK, committed_after_first);
 
     /* Stay within the first chunk — committed must not change. */
     mem_alloc(a, COMMIT_CHUNK / 2, 1);
-    EXPECT_EQ(arena.committed, committed_after_first);
+    ASSERT_EQ(committed_after_first, arena.committed);
 
     /* Cross into the next chunk. */
     mem_alloc(a, COMMIT_CHUNK, 1);
-    EXPECT_GT(arena.committed, committed_after_first);
+    ASSERT_GT(arena.committed, committed_after_first);
 }
 
 /* ── OOM ────────────────────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, alloc_beyond_reserved_returns_null)
+TEST(alloc_beyond_reserved_returns_null)
 {
     virtual_arena_t small;
-    ASSERT_EQ(virtual_arena_init(&small, mem_page_size(), mem_page_size()), 0);
+    ASSERT_EQ(0, virtual_arena_init(&small, mem_page_size(), mem_page_size()));
     allocator_t a = virtual_arena_allocator(&small);
     /* Exhaust the reserved range. */
     mem_alloc(a, mem_page_size(), 1);
     void *p = mem_alloc(a, 1, 1);
-    EXPECT_EQ(p, nullptr);
+    ASSERT_NULL(p);
     virtual_arena_destroy(&small);
 }
 
 /* ── reset ──────────────────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, reset_rewinds_offset)
+TEST(reset_rewinds_offset)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     void *p1 = mem_alloc(a, 64, 1);
     virtual_arena_reset(&arena);
     void *p2 = mem_alloc(a, 64, 1);
-    EXPECT_EQ(p1, p2);
+    ASSERT_PTR_EQ(p2, p1);
 }
 
-TEST_F(virtual_arena, reset_decommits_pages)
+TEST(reset_decommits_pages)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     mem_alloc(a, COMMIT_CHUNK * 2, 1);
-    EXPECT_GT(arena.committed, 0u);
+    ASSERT_GT(arena.committed, 0u);
     virtual_arena_reset(&arena);
-    EXPECT_EQ(arena.committed, 0u);
-    EXPECT_EQ(arena.offset, 0u);
+    ASSERT_EQ(0u, arena.committed);
+    ASSERT_EQ(0u, arena.offset);
 }
 
 /* ── realloc ────────────────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, realloc_inplace_last_alloc)
+TEST(realloc_inplace_last_alloc)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     uint8_t *p = (uint8_t *)mem_alloc(a, 16, 1);
     memset(p, 0x77, 16);
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p, 16, 32, 1);
-    EXPECT_EQ(p, p2);
+    ASSERT_PTR_EQ(p2, p);
     for (int i = 0; i < 16; ++i)
-        EXPECT_EQ(p2[i], (uint8_t)0x77);
+        ASSERT_EQ((uint8_t)0x77, p2[i]);
 }
 
-TEST_F(virtual_arena, realloc_general_preserves_content)
+TEST(realloc_general_preserves_content)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     uint8_t *p1 = (uint8_t *)mem_alloc(a, 16, 1);
     memset(p1, 0x33, 16);
     mem_alloc(a, 8, 1);
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p1, 16, 16, 1);
-    ASSERT_NE(p2, nullptr);
-    EXPECT_NE(p1, p2);
+    ASSERT_NOT_NULL(p2);
+    ASSERT_PTR_NE(p2, p1);
     for (int i = 0; i < 16; ++i)
-        EXPECT_EQ(p2[i], (uint8_t)0x33);
+        ASSERT_EQ((uint8_t)0x33, p2[i]);
 }
 
 /* ── scratch ────────────────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, scratch_rewinds_offset)
+TEST(scratch_rewinds_offset)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     mem_alloc(a, 64, 1);
@@ -181,53 +181,58 @@ TEST_F(virtual_arena, scratch_rewinds_offset)
     mem_alloc(scratch_allocator(&s), COMMIT_CHUNK * 2, 1);
     scratch_end(&s);
 
-    EXPECT_EQ(arena.offset, offset_before);
+    ASSERT_EQ(offset_before, arena.offset);
 }
 
-TEST_F(virtual_arena, scratch_decommits_on_end)
+TEST(scratch_decommits_on_end)
 {
     scratch_t s;
     virtual_arena_scratch_begin(&s, &arena);
     /* Force at least two commit chunks. */
     mem_alloc(scratch_allocator(&s), COMMIT_CHUNK * 3, 1);
     size_t committed_during = arena.committed;
-    EXPECT_GT(committed_during, 0u);
+    ASSERT_GT(committed_during, 0u);
 
     scratch_end(&s);
 
-    EXPECT_LT(arena.committed, committed_during);
+    ASSERT_LT(arena.committed, committed_during);
 }
 
-/* ── nullptr-ptr contract ──────────────────────────────────────────────────────
+/* ── NULL-ptr contract ──────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, realloc_null_ptr_acts_as_alloc)
+TEST(realloc_null_ptr_acts_as_alloc)
 {
     allocator_t a = virtual_arena_allocator(&arena);
-    void *p = mem_realloc(a, nullptr, 0, 64, 1);
-    ASSERT_NE(p, nullptr);
+    void *p = mem_realloc(a, NULL, 0, 64, 1);
+    ASSERT_NOT_NULL(p);
 }
 
-TEST_F(virtual_arena, free_null_is_noop)
+TEST(free_null_is_noop)
 {
     allocator_t a = virtual_arena_allocator(&arena);
-    mem_free(a, nullptr, 0); /* must not crash */
+    mem_free(a, NULL, 0); /* must not crash */
 }
 
 /* ── stats ──────────────────────────────────────────────────────────────────
  */
 
-TEST_F(virtual_arena, stats_reports_reserved_and_used)
+TEST(stats_reports_reserved_and_used)
 {
     allocator_t a = virtual_arena_allocator(&arena);
     arena_stats_t s0 = virtual_arena_stats(&arena);
-    EXPECT_EQ(s0.used, 0u);
-    EXPECT_EQ(s0.committed, 0u); /* nothing committed yet */
-    EXPECT_EQ(s0.reserved, (size_t)RESERVED);
+    ASSERT_EQ(0u, s0.used);
+    ASSERT_EQ(0u, s0.committed); /* nothing committed yet */
+    ASSERT_EQ((size_t)RESERVED, s0.reserved);
 
     mem_alloc(a, 64, 1);
     arena_stats_t s1 = virtual_arena_stats(&arena);
-    EXPECT_GE(s1.used, 64u);
-    EXPECT_GE(s1.committed, (size_t)COMMIT_CHUNK);
-    EXPECT_EQ(s1.reserved, (size_t)RESERVED);
+    ASSERT_GE(s1.used, 64u);
+    ASSERT_GE(s1.committed, (size_t)COMMIT_CHUNK);
+    ASSERT_EQ((size_t)RESERVED, s1.reserved);
+}
+
+int main(int argc, char *argv[])
+{
+    return ctt_main(argc, argv, "virtual_arena");
 }
