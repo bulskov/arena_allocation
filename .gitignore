@@ -1,10 +1,6 @@
 build/
-build_publish/
-dist/
 .cache/
 compile_commands.json
-arena_allocator.zip
-arena_allocator-*.zip
 *.o
 *.a
 *.so

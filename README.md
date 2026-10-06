@@ -37,6 +37,25 @@ patterns (`0xCD` on alloc, `0xDD` on free) and tracks alloc counts and live
 bytes.  Wrap any arena with it during testing; a non-zero `bytes_live` after
 teardown indicates a leak.
 
+## Using in your project
+
+Pull the library in with CMake's `FetchContent` and link the `arena` target:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    arena
+    GIT_REPOSITORY https://github.com/bulskov/arena_allocation.git
+    GIT_TAG        v1.1.2
+)
+FetchContent_MakeAvailable(arena)
+
+target_link_libraries(my_app PRIVATE arena)
+```
+
+When fetched as a subproject, arena's own tests are not built, so its test
+dependency is not downloaded.
+
 ## Quick start
 
 ```c
