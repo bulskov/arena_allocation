@@ -4,11 +4,21 @@
 #include <string.h>
 
 #include "arena/stack_arena.h"
+#include "platform.h" /* mem_page_size */
 
 #define CAPACITY 4096
 #define MIN_ALIGN 8
 
 static stack_arena_t arena;
+
+/* stack_arena_init rounds the requested capacity up to whole pages, so the
+ * real capacity depends on the platform: 4096 on most x86-64 systems, 16384
+ * on Apple Silicon, 65536 on some ARM Linux kernels. */
+static size_t expected_capacity(void)
+{
+    size_t page = mem_page_size();
+    return (CAPACITY + page - 1) / page * page;
+}
 
 void ctt_before_each(void)
 {
@@ -41,7 +51,8 @@ TEST(alloc_writes_are_readable)
 
 TEST(alloc_oom_returns_null)
 {
-    void *p = mem_alloc(stack_arena_allocator(&arena), CAPACITY + 1, 1);
+    void *p =
+        mem_alloc(stack_arena_allocator(&arena), expected_capacity() + 1, 1);
     ASSERT_NULL(p);
 }
 
@@ -232,12 +243,12 @@ TEST(stats_reports_used_and_capacity)
     allocator_t a = stack_arena_allocator(&arena);
     arena_stats_t s0 = stack_arena_stats(&arena);
     ASSERT_EQ(0u, s0.used);
-    ASSERT_EQ((size_t)CAPACITY, s0.capacity);
+    ASSERT_EQ(expected_capacity(), s0.capacity);
 
     mem_alloc(a, 16, 1);
     arena_stats_t s1 = stack_arena_stats(&arena);
     ASSERT_GE(s1.used, 16u);
-    ASSERT_EQ((size_t)CAPACITY, s1.capacity);
+    ASSERT_EQ(expected_capacity(), s1.capacity);
 
     stack_arena_reset(&arena);
     arena_stats_t s2 = stack_arena_stats(&arena);
