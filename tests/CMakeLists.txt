@@ -15,8 +15,8 @@ foreach(suite ${TEST_SUITES})
         ${CMAKE_SOURCE_DIR}/src   # platform.h for virtual_arena test
     )
     target_compile_options(${suite} PRIVATE
-        $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
-        $<$<C_COMPILER_ID:MSVC>:/W4>
+        $<$<NOT:$<BOOL:${MSVC}>>:-Wall -Wextra -Wpedantic>
+        $<$<BOOL:${MSVC}>:/W4>
     )
     add_test(NAME ${suite} COMMAND ${suite})
 endforeach()

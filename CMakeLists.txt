@@ -28,8 +28,8 @@ target_include_directories(arena PUBLIC  include ${CMAKE_CURRENT_BINARY_DIR}/inc
 target_include_directories(arena PRIVATE src)
 
 target_compile_options(arena PRIVATE
-    $<$<C_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
-    $<$<C_COMPILER_ID:MSVC>:/W4>
+    $<$<NOT:$<BOOL:${MSVC}>>:-Wall -Wextra -Wpedantic>
+    $<$<BOOL:${MSVC}>:/W4>
 )
 
 # ── Tests ────────────────────────────────────────────────────────────────────
