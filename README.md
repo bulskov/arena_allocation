@@ -46,7 +46,7 @@ include(FetchContent)
 FetchContent_Declare(
     arena
     GIT_REPOSITORY https://github.com/bulskov/arena_allocation.git
-    GIT_TAG        v1.1.2
+    GIT_TAG        v1.1.3
 )
 FetchContent_MakeAvailable(arena)
 
