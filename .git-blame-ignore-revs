@@ -1,0 +1,5 @@
+# Commits that only reformat code; git blame skips them.
+# Locally: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: one-time reformat with the shared .clang-format
+c42c5be309d3df0e438885618117b4b44066439e
