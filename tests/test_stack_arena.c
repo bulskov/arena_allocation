@@ -46,7 +46,9 @@ TEST(alloc_writes_are_readable)
     ASSERT_NOT_NULL(p);
     memset(p, 0xAB, 16);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0xAB, p[i]);
+    }
 }
 
 TEST(alloc_oom_returns_null)
@@ -136,7 +138,9 @@ TEST(freed_slots_restore_content)
     mem_free(a, p2, 8);
     /* p1 must still be intact after popping p2 */
     for (int i = 0; i < 8; ++i)
+    {
         ASSERT_EQ((uint8_t)0xAA, p1[i]);
+    }
 }
 
 /* ── LIFO violation: non-top free is a no-op ─────────────────────────────── */
@@ -161,7 +165,9 @@ TEST(reset_rewinds_to_zero)
 {
     allocator_t a = stack_arena_allocator(&arena);
     for (int i = 0; i < 10; ++i)
+    {
         mem_alloc(a, 8, 1);
+    }
     stack_arena_reset(&arena);
     ASSERT_EQ(0u, arena.offset);
 }
@@ -186,7 +192,9 @@ TEST(realloc_inplace_top)
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p, 8, 16, 1);
     ASSERT_PTR_EQ(p2, p);
     for (int i = 0; i < 8; ++i)
+    {
         ASSERT_EQ((uint8_t)0xCC, p2[i]);
+    }
 }
 
 TEST(realloc_general_preserves_content)
@@ -199,7 +207,9 @@ TEST(realloc_general_preserves_content)
     ASSERT_NOT_NULL(p2);
     ASSERT_PTR_NE(p2, p1);
     for (int i = 0; i < 8; ++i)
+    {
         ASSERT_EQ((uint8_t)0xDD, p2[i]);
+    }
 }
 
 /* ── capacity ───────────────────────────────────────────────────────────────

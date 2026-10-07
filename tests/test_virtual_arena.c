@@ -38,7 +38,9 @@ TEST(alloc_writes_are_readable)
     ASSERT_NOT_NULL(p);
     memset(p, 0xF0, 16);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0xF0, p[i]);
+    }
 }
 
 TEST(alloc_advances_sequentially)
@@ -151,7 +153,9 @@ TEST(realloc_inplace_last_alloc)
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p, 16, 32, 1);
     ASSERT_PTR_EQ(p2, p);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0x77, p2[i]);
+    }
 }
 
 TEST(realloc_general_preserves_content)
@@ -164,7 +168,9 @@ TEST(realloc_general_preserves_content)
     ASSERT_NOT_NULL(p2);
     ASSERT_PTR_NE(p2, p1);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0x33, p2[i]);
+    }
 }
 
 /* ── scratch ────────────────────────────────────────────────────────────────

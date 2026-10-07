@@ -36,7 +36,9 @@ TEST(alloc_writes_are_readable)
     ASSERT_NOT_NULL(p);
     memset(p, 0xCC, OBJECT_SIZE);
     for (int i = 0; i < OBJECT_SIZE; ++i)
+    {
         ASSERT_EQ((uint8_t)0xCC, p[i]);
+    }
 }
 
 TEST(free_returns_slot_to_pool)
@@ -68,7 +70,9 @@ TEST(oom_beyond_capacity)
 {
     allocator_t a = pool_allocator(&pool);
     for (size_t i = 0; i < CAPACITY; ++i)
+    {
         mem_alloc(a, OBJECT_SIZE, 1);
+    }
     void *p = mem_alloc(a, OBJECT_SIZE, 1);
     ASSERT_NULL(p);
 }
@@ -111,7 +115,9 @@ TEST(reset_restores_all_slots)
 {
     allocator_t a = pool_allocator(&pool);
     for (size_t i = 0; i < CAPACITY; ++i)
+    {
         mem_alloc(a, OBJECT_SIZE, 1);
+    }
     ASSERT_EQ((size_t)CAPACITY, pool.count);
 
     pool_reset(&pool);

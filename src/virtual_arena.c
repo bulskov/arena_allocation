@@ -11,16 +11,24 @@ static inline size_t align_up(size_t val, size_t align)
 static int ensure_committed(virtual_arena_t *a, size_t required)
 {
     if (required <= a->committed)
+    {
         return 0;
+    }
     if (required > a->reserved)
+    {
         return -1;
+    }
 
     size_t want = align_up(required, a->commit_chunk);
     if (want > a->reserved)
+    {
         want = a->reserved;
+    }
 
     if (mem_commit(a->base + a->committed, want - a->committed) != 0)
+    {
         return -1;
+    }
     a->committed = want;
     return 0;
 }
@@ -31,9 +39,11 @@ int virtual_arena_init(
     virtual_arena_t *a, size_t reserved_size, size_t commit_chunk)
 {
     size_t page = mem_page_size();
-    if (reserved_size == 0 || reserved_size > SIZE_MAX - (page - 1) ||
-        commit_chunk > SIZE_MAX - (page - 1)) /* align_up overflow */
+    if (reserved_size == 0 || reserved_size > SIZE_MAX - (page - 1)
+        || commit_chunk > SIZE_MAX - (page - 1)) /* align_up overflow */
+    {
         return -1;
+    }
     a->reserved = align_up(reserved_size, page);
     a->commit_chunk = align_up(commit_chunk, page);
     a->committed = 0;
@@ -70,7 +80,9 @@ static void *virtual_alloc(void *ctx, size_t size, size_t align)
     uintptr_t adr = align_up(base + a->offset, align);
     size_t end = (size_t)(adr - base) + size;
     if (ensure_committed(a, end) != 0)
+    {
         return NULL;
+    }
     a->offset = end;
     return (void *)adr;
 }
@@ -79,7 +91,9 @@ static void *virtual_realloc(
     void *ctx, void *ptr, size_t old_size, size_t new_size, size_t align)
 {
     if (!ptr)
+    {
         return virtual_alloc(ctx, new_size, align);
+    }
     virtual_arena_t *a = (virtual_arena_t *)ctx;
     uint8_t *p = (uint8_t *)ptr;
 
@@ -89,14 +103,18 @@ static void *virtual_realloc(
         size_t base_off = (size_t)(p - a->base);
         size_t end = base_off + new_size;
         if (ensure_committed(a, end) != 0)
+        {
             return NULL;
+        }
         a->offset = end;
         return ptr;
     }
 
     void *dst = virtual_alloc(ctx, new_size, align);
     if (!dst)
+    {
         return NULL;
+    }
     size_t copy = old_size < new_size ? old_size : new_size;
     memcpy(dst, ptr, copy);
     return dst;
@@ -165,6 +183,8 @@ allocator_t virtual_arena_allocator_new(
     virtual_arena_t *a, size_t reserved_size, size_t commit_chunk)
 {
     if (virtual_arena_init(a, reserved_size, commit_chunk) != 0)
+    {
         return ALLOCATOR_NULL;
+    }
     return virtual_arena_allocator(a);
 }

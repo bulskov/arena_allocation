@@ -18,7 +18,8 @@ void ctt_before_each(void)
 
 void ctt_after_each(void)
 {
-    fixed_arena_destroy(&owned); /* idempotent — no-op if the test never created it */
+    fixed_arena_destroy(
+        &owned); /* idempotent — no-op if the test never created it */
 }
 
 /* ── basic allocation ───────────────────────────────────────────────────────
@@ -37,7 +38,9 @@ TEST(alloc_writes_are_readable)
     ASSERT_NOT_NULL(p);
     memset(p, 0xAB, 8);
     for (int i = 0; i < 8; ++i)
+    {
         ASSERT_EQ((uint8_t)0xAB, p[i]);
+    }
 }
 
 TEST(alloc_advances_sequentially)
@@ -132,7 +135,9 @@ TEST(realloc_inplace_last_alloc)
     ASSERT_PTR_EQ(p2, p);
     /* original content preserved */
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0xCD, p2[i]);
+    }
 }
 
 TEST(realloc_general_copies_content)
@@ -145,7 +150,9 @@ TEST(realloc_general_copies_content)
     ASSERT_NOT_NULL(p2);
     ASSERT_PTR_NE(p2, p1);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0x11, p2[i]);
+    }
 }
 
 TEST(realloc_oom_returns_null)
@@ -237,7 +244,9 @@ TEST(mem_calloc_returns_zeroed_memory)
     uint8_t *p = (uint8_t *)mem_calloc(a, 64, 1);
     ASSERT_NOT_NULL(p);
     for (int i = 0; i < 64; ++i)
+    {
         ASSERT_EQ((uint8_t)0, p[i]);
+    }
 }
 
 /* ── ALLOCATOR_NULL ─────────────────────────────────────────────────────────

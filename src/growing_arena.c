@@ -16,13 +16,17 @@ static growing_arena_block_t *new_block(size_t min_data, size_t page_size)
 {
     size_t header = sizeof(growing_arena_block_t);
     /* Guard header + min_data and the subsequent align_up against overflow. */
-    if (min_data > SIZE_MAX - header ||
-        header + min_data > SIZE_MAX - (page_size - 1))
+    if (min_data > SIZE_MAX - header
+        || header + min_data > SIZE_MAX - (page_size - 1))
+    {
         return NULL;
+    }
     size_t total = align_up(header + min_data, page_size);
     growing_arena_block_t *b = (growing_arena_block_t *)mem_map(total);
     if (!b)
+    {
         return NULL;
+    }
     b->next = NULL;
     b->size = total - header;
     b->offset = 0;
@@ -42,8 +46,9 @@ void growing_arena_init(growing_arena_t *a, size_t block_size)
     a->head = NULL;
     /* Avoid an align_up wrap; oversized requests are clamped, and new_block
      * still guards each actual allocation against overflow. */
-    a->block_size =
-        block_size > SIZE_MAX - (page - 1) ? block_size : align_up(block_size, page);
+    a->block_size = block_size > SIZE_MAX - (page - 1)
+                        ? block_size
+                        : align_up(block_size, page);
 }
 
 void growing_arena_destroy(growing_arena_t *a)
@@ -61,7 +66,9 @@ void growing_arena_destroy(growing_arena_t *a)
 void growing_arena_reset(growing_arena_t *a)
 {
     if (!a->head)
+    {
         return;
+    }
     /* Free all blocks except the current head; reset head's offset. */
     growing_arena_block_t *b = a->head->next;
     while (b)
@@ -109,7 +116,9 @@ static void *growing_alloc(void *ctx, size_t size, size_t align)
     size_t min = size > a->block_size ? size : a->block_size;
     growing_arena_block_t *b = new_block(min, mem_page_size());
     if (!b)
+    {
         return NULL;
+    }
 
     b->next = a->head;
     a->head = b;
@@ -124,7 +133,9 @@ static void *growing_realloc(
     void *ctx, void *ptr, size_t old_size, size_t new_size, size_t align)
 {
     if (!ptr)
+    {
         return growing_alloc(ctx, new_size, align);
+    }
     growing_arena_t *a = (growing_arena_t *)ctx;
 
     /* In-place: ptr is the last allocation in the current block. */
@@ -145,7 +156,9 @@ static void *growing_realloc(
 
     void *dst = growing_alloc(ctx, new_size, align);
     if (!dst)
+    {
         return NULL;
+    }
     size_t copy = old_size < new_size ? old_size : new_size;
     memcpy(dst, ptr, copy);
     return dst;
@@ -207,7 +220,9 @@ static void growing_pop(void *ctx, void *saved_block, size_t saved_offset)
 
     a->head = mark;
     if (mark)
+    {
         mark->offset = saved_offset;
+    }
 }
 
 void growing_arena_scratch_begin(scratch_t *s, growing_arena_t *a)

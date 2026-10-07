@@ -35,7 +35,9 @@ TEST(alloc_writes_are_readable)
     ASSERT_NOT_NULL(p);
     memset(p, 0xBE, 8);
     for (int i = 0; i < 8; ++i)
+    {
         ASSERT_EQ((uint8_t)0xBE, p[i]);
+    }
 }
 
 TEST(alloc_advances_sequentially_within_block)
@@ -126,7 +128,9 @@ TEST(reset_allows_reuse)
 {
     allocator_t a = growing_arena_allocator(&arena);
     for (int i = 0; i < 10; ++i)
+    {
         mem_alloc(a, BLOCK_SIZE / 2, 1);
+    }
     growing_arena_reset(&arena);
     void *p = mem_alloc(a, BLOCK_SIZE / 2, 1);
     ASSERT_NOT_NULL(p);
@@ -143,7 +147,9 @@ TEST(realloc_inplace_last_alloc)
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p, 16, 32, 1);
     ASSERT_PTR_EQ(p2, p);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0xAA, p2[i]);
+    }
 }
 
 TEST(realloc_general_preserves_content)
@@ -156,7 +162,9 @@ TEST(realloc_general_preserves_content)
     ASSERT_NOT_NULL(p2);
     ASSERT_PTR_NE(p2, p1);
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0x22, p2[i]);
+    }
 }
 
 /* ── free ───────────────────────────────────────────────────────────────────
@@ -201,7 +209,9 @@ TEST(scratch_frees_extra_blocks)
 
     /* Force several new blocks. */
     for (int i = 0; i < 5; ++i)
+    {
         mem_alloc(scratch_allocator(&s), BLOCK_SIZE, 1);
+    }
 
     scratch_end(&s);
 
@@ -232,7 +242,9 @@ TEST(reset_full_releases_all_blocks)
 {
     allocator_t a = growing_arena_allocator(&arena);
     for (int i = 0; i < 5; ++i)
+    {
         mem_alloc(a, arena.block_size + 1, 1); /* one block per alloc */
+    }
     ASSERT_NOT_NULL(arena.head);
 
     growing_arena_reset_full(&arena);

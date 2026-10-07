@@ -62,12 +62,13 @@ TEST(fixed_parent_alloc_unaffected_after_end)
 
     /* The pre-scratch allocation must be intact. */
     for (int i = 0; i < 32; ++i)
+    {
         ASSERT_EQ((uint8_t)0xAB, p_before[i]);
+    }
 }
 
 /* ── scratch over growing_arena ─────────────────────────────────────────────
  */
-
 
 TEST(growing_begin_end_empty_arena)
 {
@@ -98,7 +99,9 @@ TEST(growing_blocks_added_in_scratch_are_freed)
     scratch_t s;
     growing_arena_scratch_begin(&s, &a);
     for (int i = 0; i < 6; ++i)
+    {
         mem_alloc(scratch_allocator(&s), 64, 1); /* forces new blocks */
+    }
     scratch_end(&s);
 
     ASSERT_PTR_EQ(head_before, a.head);
@@ -109,7 +112,6 @@ TEST(growing_blocks_added_in_scratch_are_freed)
 
 /* ── scratch over virtual_arena ─────────────────────────────────────────────
  */
-
 
 TEST(virtual_begin_end_roundtrip)
 {
@@ -148,7 +150,9 @@ TEST(virtual_parent_retains_its_pages)
      */
     ASSERT_GE(a.committed, (size_t)((p + 64) - a.base));
     for (int i = 0; i < 64; ++i)
+    {
         ASSERT_EQ((uint8_t)0x9E, p[i]);
+    }
 
     virtual_arena_destroy(&a);
 }

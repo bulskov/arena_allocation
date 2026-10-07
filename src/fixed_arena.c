@@ -38,7 +38,9 @@ int fixed_arena_create(fixed_arena_t *a, size_t size)
 void fixed_arena_destroy(fixed_arena_t *a)
 {
     if (a->owned && a->base)
+    {
         mem_unmap(a->base, a->size);
+    }
     a->base = NULL;
     a->size = 0;
     a->offset = 0;
@@ -59,7 +61,9 @@ static void *fixed_alloc(void *ctx, size_t size, size_t align)
     uintptr_t adr = align_up(base + a->offset, align);
     size_t off = (size_t)(adr - base) + size;
     if (off > a->size)
+    {
         return NULL;
+    }
     a->offset = off;
     return (void *)adr;
 }
@@ -68,7 +72,9 @@ static void *fixed_realloc(
     void *ctx, void *ptr, size_t old_size, size_t new_size, size_t align)
 {
     if (!ptr)
+    {
         return fixed_alloc(ctx, new_size, align);
+    }
     fixed_arena_t *a = (fixed_arena_t *)ctx;
     uint8_t *p = (uint8_t *)ptr;
 
@@ -77,7 +83,9 @@ static void *fixed_realloc(
     {
         size_t base_off = (size_t)(p - a->base);
         if (base_off + new_size > a->size)
+        {
             return NULL;
+        }
         a->offset = base_off + new_size;
         return ptr;
     }
@@ -85,7 +93,9 @@ static void *fixed_realloc(
     /* General: alloc + copy; old allocation is abandoned (no-op free). */
     void *dst = fixed_alloc(ctx, new_size, align);
     if (!dst)
+    {
         return NULL;
+    }
     size_t copy = old_size < new_size ? old_size : new_size;
     memcpy(dst, ptr, copy);
     return dst;
@@ -112,7 +122,9 @@ allocator_t fixed_arena_allocator(fixed_arena_t *a)
 allocator_t fixed_arena_allocator_new(fixed_arena_t *a, size_t size)
 {
     if (fixed_arena_create(a, size) != 0)
+    {
         return ALLOCATOR_NULL;
+    }
     return fixed_arena_allocator(a);
 }
 

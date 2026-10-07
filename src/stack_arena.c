@@ -13,12 +13,17 @@ static inline size_t align_up(size_t v, size_t a)
 int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align)
 {
     size_t page = mem_page_size();
-    if (capacity == 0 || capacity > SIZE_MAX - (page - 1)) /* align_up overflow */
+    if (capacity == 0
+        || capacity > SIZE_MAX - (page - 1)) /* align_up overflow */
+    {
         return -1;
+    }
     size_t total = align_up(capacity, page);
     uint8_t *base = (uint8_t *)mem_map(total);
     if (!base)
+    {
         return -1;
+    }
     a->base = base;
     a->capacity = total;
     a->offset = 0;
@@ -29,7 +34,9 @@ int stack_arena_init(stack_arena_t *a, size_t capacity, size_t min_align)
 void stack_arena_destroy(stack_arena_t *a)
 {
     if (a->base)
+    {
         mem_unmap(a->base, a->capacity);
+    }
     a->base = NULL;
     a->capacity = 0;
     a->offset = 0;
@@ -60,7 +67,9 @@ static void *stack_alloc(void *ctx, size_t size, size_t align)
     size_t slot = align_up(size, a->min_align);
     size_t new_off = (size_t)(adr - base) + slot;
     if (new_off > a->capacity)
+    {
         return NULL;
+    }
     a->offset = new_off;
     return (void *)adr;
 }
@@ -69,7 +78,9 @@ static void *stack_realloc(
     void *ctx, void *ptr, size_t old_size, size_t new_size, size_t align)
 {
     if (!ptr)
+    {
         return stack_alloc(ctx, new_size, align);
+    }
     stack_arena_t *a = (stack_arena_t *)ctx;
     assert(align >= 1 && (align & (align - 1)) == 0); /* power of two */
     assert(align <= a->min_align); /* honoured only up to min_align */
@@ -84,7 +95,9 @@ static void *stack_realloc(
         size_t new_slot = align_up(new_size, a->min_align);
         size_t new_off = (size_t)(p - base) + new_slot;
         if (new_off > a->capacity)
+        {
             return NULL;
+        }
         a->offset = new_off;
         return ptr;
     }
@@ -92,7 +105,9 @@ static void *stack_realloc(
     /* General: alloc new block, copy; old slot stays (not the top). */
     void *dst = stack_alloc(ctx, new_size, 1);
     if (!dst)
+    {
         return NULL;
+    }
     size_t copy = old_size < new_size ? old_size : new_size;
     memcpy(dst, ptr, copy);
     return dst;
@@ -101,14 +116,18 @@ static void *stack_realloc(
 static void stack_free(void *ctx, void *ptr, size_t size)
 {
     if (!ptr)
+    {
         return;
+    }
     stack_arena_t *a = (stack_arena_t *)ctx;
     uintptr_t base = (uintptr_t)a->base;
     uintptr_t p = (uintptr_t)ptr;
     size_t slot = align_up(size, a->min_align);
 
     if (p + slot == base + a->offset)
+    {
         a->offset = (size_t)(p - base);
+    }
     /* else: not the top — LIFO violation, silent no-op */
 }
 
@@ -137,6 +156,8 @@ allocator_t stack_arena_allocator_new(
     stack_arena_t *a, size_t capacity, size_t min_align)
 {
     if (stack_arena_init(a, capacity, min_align) != 0)
+    {
         return ALLOCATOR_NULL;
+    }
     return stack_arena_allocator(a);
 }

@@ -31,7 +31,9 @@ void debug_allocator_reset(debug_allocator_t *d)
 static void update_peak(debug_allocator_t *d)
 {
     if (d->bytes_live > d->bytes_peak)
+    {
         d->bytes_peak = d->bytes_live;
+    }
 }
 
 /* ---------- vtable -------------------------------------------------------- */
@@ -41,7 +43,9 @@ static void *debug_alloc(void *ctx, size_t size, size_t align)
     debug_allocator_t *d = (debug_allocator_t *)ctx;
     void *p = mem_alloc(d->inner, size, align);
     if (!p)
+    {
         return NULL;
+    }
     memset(p, SENTINEL_ALLOC, size);
     d->alloc_count++;
     d->bytes_total += size;
@@ -56,21 +60,29 @@ static void *debug_realloc(
     debug_allocator_t *d = (debug_allocator_t *)ctx;
 
     if (!ptr)
+    {
         return debug_alloc(ctx, new_size, align);
+    }
 
     void *result = mem_realloc(d->inner, ptr, old_size, new_size, align);
     if (!result)
+    {
         return NULL;
+    }
 
     if (result == ptr)
     {
         /* In-place: fill the changed region with the appropriate sentinel. */
         if (new_size > old_size)
+        {
             memset(
                 (uint8_t *)ptr + old_size, SENTINEL_ALLOC, new_size - old_size);
+        }
         else if (new_size < old_size)
+        {
             memset(
                 (uint8_t *)ptr + new_size, SENTINEL_FREE, old_size - new_size);
+        }
     }
     else
     {
@@ -80,10 +92,12 @@ static void *debug_realloc(
          * region so stale reads are detectable.
          */
         if (new_size > old_size)
+        {
             memset(
                 (uint8_t *)result + old_size,
                 SENTINEL_ALLOC,
                 new_size - old_size);
+        }
         memset(ptr, SENTINEL_FREE, old_size);
     }
 
@@ -95,7 +109,9 @@ static void *debug_realloc(
 static void debug_free(void *ctx, void *ptr, size_t size)
 {
     if (!ptr)
+    {
         return;
+    }
     debug_allocator_t *d = (debug_allocator_t *)ctx;
     memset(ptr, SENTINEL_FREE, size);
     mem_free(d->inner, ptr, size);

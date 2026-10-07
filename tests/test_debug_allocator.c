@@ -27,7 +27,9 @@ TEST(alloc_fills_with_0xcd)
     uint8_t *p = (uint8_t *)mem_alloc(a, 32, 1);
     ASSERT_NOT_NULL(p);
     for (int i = 0; i < 32; ++i)
+    {
         ASSERT_EQ((uint8_t)0xCD, p[i]);
+    }
 }
 
 /* ── sentinel: free fills 0xDD ─────────────────────────────────────────────
@@ -40,7 +42,9 @@ TEST(free_fills_with_0xdd)
     memset(p, 0xAB, 32);
     mem_free(a, p, 32);
     for (int i = 0; i < 32; ++i)
+    {
         ASSERT_EQ((uint8_t)0xDD, p[i]);
+    }
 }
 
 /* ── sentinel: realloc in-place expansion fills new bytes with 0xCD ─────── */
@@ -53,9 +57,13 @@ TEST(realloc_inplace_expansion_fills_0xcd)
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p, 16, 32, 1);
     ASSERT_PTR_EQ(p2, p); /* in-place: p is the last alloc in the fixed arena */
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0x11, p2[i]); /* original content preserved */
+    }
     for (int i = 16; i < 32; ++i)
+    {
         ASSERT_EQ((uint8_t)0xCD, p2[i]); /* extension filled */
+    }
 }
 
 /* ── sentinel: realloc in-place shrink fills tail with 0xDD ────────────── */
@@ -68,7 +76,9 @@ TEST(realloc_inplace_shrink_fills_0xdd)
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p, 32, 16, 1);
     ASSERT_PTR_EQ(p2, p);
     for (int i = 16; i < 32; ++i)
+    {
         ASSERT_EQ((uint8_t)0xDD, p[i]); /* discarded tail poisoned */
+    }
 }
 
 /* ── sentinel: relocation poisons old pointer ──────────────────────────────
@@ -82,7 +92,9 @@ TEST(realloc_relocation_poisons_old_ptr)
     uint8_t *p2 = (uint8_t *)mem_realloc(a, p1, 16, 16, 1);
     ASSERT_PTR_NE(p2, p1); /* must have relocated */
     for (int i = 0; i < 16; ++i)
+    {
         ASSERT_EQ((uint8_t)0xDD, p1[i]); /* old region poisoned */
+    }
 }
 
 /* ── NULL-ptr contract ──────────────────────────────────────────────────────
@@ -94,7 +106,9 @@ TEST(realloc_null_acts_as_alloc)
     uint8_t *p = (uint8_t *)mem_realloc(a, NULL, 0, 32, 1);
     ASSERT_NOT_NULL(p);
     for (int i = 0; i < 32; ++i)
+    {
         ASSERT_EQ((uint8_t)0xCD, p[i]);
+    }
 }
 
 TEST(free_null_is_noop)
